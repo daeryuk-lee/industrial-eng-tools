@@ -24,7 +24,10 @@ export const translations = {
       typing: "Mode Saisie",
       qcm: "Mode QCM",
       all: "Défi Complet",
-      quick: "Quiz Rapide"
+      quick: "Quiz Rapide",
+      correct: "✓ Correct !",
+      almost: "⚠ Presque ! La bonne réponse est :",
+      wrong: "✗ Incorrect. La réponse était :"
     },
     templates: {
       flags: "De quel pays s'agit-il ?",
