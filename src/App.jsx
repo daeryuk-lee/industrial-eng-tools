@@ -7,6 +7,7 @@ function App() {
   const [lang, setLang] = useState('fr');
   const [isFull, setIsFull] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [qCount, setQCount] = useState('10');
 
   return (
     <div className="App">
@@ -18,6 +19,8 @@ function App() {
           setIsFull={setIsFull}
           isTyping={isTyping}
           setIsTyping={setIsTyping}
+          qCount={qCount}
+          setQCount={setQCount}
           onSelectMode={(id) => setCurrentMode(id)} 
         />
       ) : (
@@ -26,6 +29,7 @@ function App() {
           lang={lang}
           isFull={isFull}
           isTyping={isTyping}
+          qCount={qCount === 'all' ? 999 : parseInt(qCount)}
           onBack={() => setCurrentMode(null)} 
         />
       )}

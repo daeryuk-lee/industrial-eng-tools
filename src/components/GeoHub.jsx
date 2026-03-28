@@ -1,7 +1,7 @@
 import React from 'react';
 import { translations } from '../data/translations';
 
-const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, onSelectMode }) => {
+const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCount, setQCount, onSelectMode }) => {
   const t = translations[lang];
   const modes = [
     { id: 'flags', name: t.modes.flags, icon: '🏳️' },
@@ -13,25 +13,44 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, onSel
 
   return (
     <div className="container animate-fade">
-      <header style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
+      <header style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.8rem', marginBottom: '1.5rem' }}>
           {['fr', 'en', 'kor'].map(l => (
-            <button key={l} className={`btn ${lang === l ? 'btn-primary' : ''}`} onClick={() => setLang(l)} style={{ textTransform: 'uppercase', padding: '8px 16px' }}>
+            <button key={l} className={`btn ${lang === l ? 'btn-primary' : ''}`} onClick={() => setLang(l)} style={{ textTransform: 'uppercase', padding: '6px 12px', fontSize: '0.8rem' }}>
               {l}
             </button>
           ))}
         </div>
         
         <h1 style={{ fontSize: '3.5rem', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: '800' }}>{t.title}</h1>
-        <p style={{ color: 'var(--text-light)', fontSize: '1.2rem' }}>{t.subtitle}</p>
+        <p style={{ color: 'var(--text-light)', fontSize: '1.1rem' }}>{t.subtitle}</p>
       </header>
 
-      <div className="card" style={{ marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
-        <button className={`btn ${!isTyping ? 'btn-primary' : ''}`} onClick={() => setIsTyping(false)}>{t.ui.qcm}</button>
-        <button className={`btn ${isTyping ? 'btn-primary' : ''}`} onClick={() => setIsTyping(true)}>{t.ui.typing}</button>
-        <div style={{ width: '2px', background: '#e2e8f0', margin: '0 10px' }} />
-        <button className={`btn ${!isFull ? 'btn-primary' : ''}`} onClick={() => setIsFull(false)}>{t.ui.quick}</button>
-        <button className={`btn ${isFull ? 'btn-primary' : ''}`} onClick={() => setIsFull(true)}>{t.ui.all}</button>
+      <div className="card" style={{ marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', gap: '1.5rem', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className={`btn ${!isTyping ? 'btn-primary' : ''}`} onClick={() => setIsTyping(false)}>{t.ui.qcm}</button>
+          <button className={`btn ${isTyping ? 'btn-primary' : ''}`} onClick={() => setIsTyping(true)}>{t.ui.typing}</button>
+        </div>
+
+        <div style={{ width: '2px', height: '30px', background: '#e2e8f0' }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-light)' }}>{t.settings.qCount}</span>
+          <select 
+            value={qCount} 
+            onChange={(e) => {
+              const val = e.target.value;
+              setQCount(val);
+              setIsFull(val === 'all');
+            }}
+            style={{ padding: '8px 12px', borderRadius: '8px', border: '2px solid var(--primary)', outline: 'none', background: 'white', fontWeight: 'bold' }}
+          >
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="all">{t.settings.all}</option>
+          </select>
+        </div>
       </div>
 
       <div className="grid-modes">
