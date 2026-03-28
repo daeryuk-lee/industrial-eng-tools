@@ -99,6 +99,7 @@ const SpaceInvaders = ({ onBack }) => {
     };
 
     const draw = () => {
+      const s = state.current;
       ctx.fillStyle = 'black';
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
 

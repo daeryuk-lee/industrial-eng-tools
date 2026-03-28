@@ -223,6 +223,8 @@ const SurvivUltra = ({ onBack }) => {
     };
 
     const draw = () => {
+      const s = state.current;
+      const p = s.player;
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
 
