@@ -1,46 +1,40 @@
 import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
-import InventoryView from './components/InventoryView';
-import ProcessView from './components/ProcessView';
+import Lobby from './components/Lobby';
+import TicTacToe from './components/games/TicTacToe';
+import ConnectFour from './components/games/ConnectFour';
+import Minesweeper from './components/games/Minesweeper';
+import Snake from './components/games/Snake';
+import Tetris from './components/games/Tetris';
 
 function App() {
-  const [activeView, setActiveView] = useState('dashboard');
+  const [currentGame, setCurrentGame] = useState(null);
 
-  const renderView = () => {
-    switch (activeView) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'inventory':
-        return <InventoryView />;
-      case 'processes':
-        return <ProcessView />;
-      case 'analytics':
-        return (
-          <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
-            <h2 style={{ color: 'var(--text-secondary)' }}>Analyses Prédictives</h2>
-            <p>Intelligence artificielle en cours d'intégration pour la maintenance prédictive...</p>
-          </div>
-        );
+  const renderGame = () => {
+    switch (currentGame) {
+      case 'tic-tac-toe':
+        return <TicTacToe onBack={() => setCurrentGame(null)} />;
+      case 'connect-four':
+        return <ConnectFour onBack={() => setCurrentGame(null)} />;
+      case 'minesweeper':
+        return <Minesweeper onBack={() => setCurrentGame(null)} />;
+      case 'snake':
+        return <Snake onBack={() => setCurrentGame(null)} />;
+      case 'tetris':
+        return <Tetris onBack={() => setCurrentGame(null)} />;
       default:
-        return <Dashboard />;
+        return <Lobby onSelectGame={(id) => setCurrentGame(id)} />;
     }
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)' }}>
-      <Sidebar activeView={activeView} setActiveView={setActiveView} />
+    <div style={{ padding: '40px 20px', minHeight: '100vh' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {renderGame()}
+      </div>
       
-      <main style={{ 
-        flex: 1, 
-        padding: '20px 40px 20px 20px', 
-        height: '100vh', 
-        overflowY: 'auto' 
-      }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', paddingTop: '20px' }}>
-          {renderView()}
-        </div>
-      </main>
+      <footer style={{ textAlign: 'center', marginTop: '60px', color: 'var(--text-secondary)', fontSize: '0.8rem', opacity: 0.5 }}>
+        &copy; 2026 Arcade Hub • Propulsé par Gemini Pro
+      </footer>
     </div>
   );
 }
