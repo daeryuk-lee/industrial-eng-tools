@@ -1,27 +1,54 @@
-import './App.css';
+import React, { useState } from 'react';
+import Sidebar from './components/Sidebar';
+import Dashboard from './components/Dashboard';
 
 function App() {
+  const [activeView, setActiveView] = useState('dashboard');
+
+  const renderView = () => {
+    switch (activeView) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'inventory':
+        return (
+          <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
+            <h2 style={{ color: 'var(--text-secondary)' }}>Gestion des Stocks</h2>
+            <p>Module en cours de développement...</p>
+          </div>
+        );
+      case 'processes':
+        return (
+          <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
+            <h2 style={{ color: 'var(--text-secondary)' }}>Analyse de Processus</h2>
+            <p>Module en cours de développement...</p>
+          </div>
+        );
+      case 'analytics':
+        return (
+          <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
+            <h2 style={{ color: 'var(--text-secondary)' }}>Analyses Avancées</h2>
+            <p>Module en cours de développement...</p>
+          </div>
+        );
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src="Octocat.png" className="App-logo" alt="logo" />
-        <p>
-          GitHub Codespaces <span className="heart">♥️</span> React
-        </p>
-        <p className="small">
-          Edit <code>src/App.jsx</code> and save to reload.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </p>
-      </header>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)' }}>
+      <Sidebar activeView={activeView} setActiveView={setActiveView} />
+      
+      <main style={{ 
+        flex: 1, 
+        padding: '20px 40px 20px 20px', 
+        height: '100vh', 
+        overflowY: 'auto' 
+      }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', paddingTop: '20px' }}>
+          {renderView()}
+        </div>
+      </main>
     </div>
   );
 }
