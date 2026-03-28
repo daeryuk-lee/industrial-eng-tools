@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, RotateCcw } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Trophy } from 'lucide-react';
 
 const CANVAS_SIZE = 400;
 const GRID_SIZE = 20;
+const CELL_SIZE = CANVAS_SIZE / GRID_SIZE;
 
 const Snake = ({ onBack }) => {
   const canvasRef = useRef(null);
-  const [snake, setSnake] = useState([{ x: 10, y: 10 }]);
+  const [snake, setSnake] = useState([{ x: 10, y: 10 }, { x: 10, y: 11 }, { x: 10, y: 12 }]);
   const [food, setFood] = useState({ x: 5, y: 5 });
   const [direction, setDirection] = useState({ x: 0, y: -1 });
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -27,98 +29,73 @@ const Snake = ({ onBack }) => {
 
   useEffect(() => {
     if (gameOver) return;
-    const moveSnake = setInterval(() => {
-      setSnake(prevSnake => {
-        const head = { x: prevSnake[0].x + direction.x, y: prevSnake[0].y + direction.y };
+    const interval = setInterval(() => {
+      setSnake(prev => {
+        const head = { x: prev[0].x + direction.x, y: prev[0].y + direction.y };
         
-        // Wall collision
-        if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+        if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE || prev.some(s => s.x === head.x && s.y === head.y)) {
           setGameOver(true);
-          return prevSnake;
+          if (score > highScore) setHighScore(score);
+          return prev;
         }
 
-        // Self collision
-        if (prevSnake.some(seg => seg.x === head.x && seg.y === head.y)) {
-          setGameOver(true);
-          return prevSnake;
-        }
-
-        const newSnake = [head, ...prevSnake];
-        
-        // Food collision
+        const newSnake = [head, ...prev];
         if (head.x === food.x && head.y === food.y) {
           setScore(s => s + 10);
-          setFood({
-            x: Math.floor(Math.random() * GRID_SIZE),
-            y: Math.floor(Math.random() * GRID_SIZE)
-          });
+          setFood({ x: Math.floor(Math.random() * GRID_SIZE), y: Math.floor(Math.random() * GRID_SIZE) });
         } else {
           newSnake.pop();
         }
         return newSnake;
       });
-    }, 150);
-    return () => clearInterval(moveSnake);
-  }, [direction, food, gameOver]);
+    }, 100); // Vitesse plus fluide
+    return () => clearInterval(interval);
+  }, [direction, food, gameOver, score, highScore]);
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext('2d');
-    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-    
-    // Grid (optional style)
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    for(let i=0; i<=CANVAS_SIZE; i += CANVAS_SIZE/GRID_SIZE) {
+    ctx.fillStyle = '#020205'; // Noir profond
+    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+    // Grille subtile
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    for(let i=0; i<=CANVAS_SIZE; i+=CELL_SIZE) {
       ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,CANVAS_SIZE); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(CANVAS_SIZE,i); ctx.stroke();
     }
 
-    // Food
-    ctx.fillStyle = 'var(--accent-pink)';
-    ctx.shadowBlur = 10; ctx.shadowColor = 'var(--accent-pink)';
-    ctx.fillRect(food.x * (CANVAS_SIZE/GRID_SIZE) + 2, food.y * (CANVAS_SIZE/GRID_SIZE) + 2, (CANVAS_SIZE/GRID_SIZE) - 4, (CANVAS_SIZE/GRID_SIZE) - 4);
+    // Food (Glow effect)
+    ctx.shadowBlur = 15; ctx.shadowColor = '#f472b6';
+    ctx.fillStyle = '#f472b6';
+    ctx.beginPath();
+    ctx.arc(food.x*CELL_SIZE + CELL_SIZE/2, food.y*CELL_SIZE + CELL_SIZE/2, CELL_SIZE/2 - 4, 0, Math.PI*2);
+    ctx.fill();
 
-    // Snake
-    ctx.fillStyle = 'var(--accent-green)';
-    ctx.shadowBlur = 8; ctx.shadowColor = 'var(--accent-green)';
+    // Snake (Neon Green)
     snake.forEach((seg, i) => {
-      ctx.globalAlpha = i === 0 ? 1 : 0.8 - (i/snake.length)*0.5;
-      ctx.fillRect(seg.x * (CANVAS_SIZE/GRID_SIZE) + 1, seg.y * (CANVAS_SIZE/GRID_SIZE) + 1, (CANVAS_SIZE/GRID_SIZE) - 2, (CANVAS_SIZE/GRID_SIZE) - 2);
+      ctx.shadowBlur = i === 0 ? 20 : 10;
+      ctx.shadowColor = '#4ade80';
+      ctx.fillStyle = i === 0 ? '#4ade80' : 'rgba(74, 222, 128, 0.6)';
+      ctx.fillRect(seg.x*CELL_SIZE + 1, seg.y*CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
     });
-    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    ctx.shadowBlur = 0;
   }, [snake, food]);
-
-  const resetGame = () => {
-    setSnake([{ x: 10, y: 10 }]);
-    setDirection({ x: 0, y: -1 });
-    setGameOver(false);
-    setScore(0);
-    setFood({ x: 5, y: 5 });
-  };
 
   return (
     <div className="animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-          <ArrowLeft size={20} /> Retour
-        </button>
-        <h2 className="neon-text-green">Snake</h2>
-        <button onClick={resetGame} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-          <RotateCcw size={20} />
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><ArrowLeft /></button>
+        <h2 className="neon-text-green">Snake Neon</h2>
+        <button onClick={() => {setSnake([{x:10,y:10}]); setGameOver(false); setScore(0);}} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><RotateCcw /></button>
       </div>
 
-      <div className="glass-card neon-border" style={{ padding: '20px', display: 'inline-block' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontFamily: 'Orbitron' }}>
-          <span style={{ color: 'var(--accent-green)' }}>SCORE: {score}</span>
-          {gameOver && <span style={{ color: 'var(--accent-red)' }}>GAME OVER</span>}
+      <div className="glass-card neon-border arcade-monitor" style={{ padding: '20px', display: 'inline-block' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'Orbitron', marginBottom: '10px' }}>
+          <span style={{ color: '#4ade80' }}>SCORE: {score}</span>
+          <span style={{ color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '5px' }}><Trophy size={16}/> {highScore}</span>
         </div>
-        <canvas 
-          ref={canvasRef} 
-          width={CANVAS_SIZE} 
-          height={CANVAS_SIZE} 
-          style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '8px', border: '2px solid rgba(255,255,255,0.1)' }}
-        />
-        <p style={{ marginTop: '15px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Utilisez les flèches du clavier pour diriger le serpent.</p>
+        <canvas ref={canvasRef} width={CANVAS_SIZE} height={CANVAS_SIZE} style={{ background: '#000', borderRadius: '4px', border: '2px solid rgba(74, 222, 128, 0.2)' }} />
+        {gameOver && <h3 style={{ color: '#ef4444', marginTop: '10px', fontFamily: 'Orbitron' }}>GAME OVER</h3>}
       </div>
     </div>
   );

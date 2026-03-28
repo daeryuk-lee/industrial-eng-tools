@@ -25,7 +25,7 @@ const Lobby = ({ onSelectGame }) => {
       <div className="game-grid">
         {games.map((game) => (
           <div key={game.id} className="glass-card neon-border" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '15px', padding: '20px' }} onClick={() => onSelectGame(game.id)}>
-            <div style={{ width: '60px', height: '60px', borderRadius: '15px', background: `rgba(255, 255, 255, 0.05)`, display: 'flex', alignItems: 'center', justifyCenter: 'center', color: game.color, display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '60px', height: '60px', borderRadius: '15px', background: `rgba(255, 255, 255, 0.05)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: game.color }}>
               <game.icon size={30} />
             </div>
             <div>
