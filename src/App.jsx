@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
+import InventoryView from './components/InventoryView';
+import ProcessView from './components/ProcessView';
 
 function App() {
   const [activeView, setActiveView] = useState('dashboard');
@@ -10,24 +12,14 @@ function App() {
       case 'dashboard':
         return <Dashboard />;
       case 'inventory':
-        return (
-          <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
-            <h2 style={{ color: 'var(--text-secondary)' }}>Gestion des Stocks</h2>
-            <p>Module en cours de développement...</p>
-          </div>
-        );
+        return <InventoryView />;
       case 'processes':
-        return (
-          <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
-            <h2 style={{ color: 'var(--text-secondary)' }}>Analyse de Processus</h2>
-            <p>Module en cours de développement...</p>
-          </div>
-        );
+        return <ProcessView />;
       case 'analytics':
         return (
           <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
-            <h2 style={{ color: 'var(--text-secondary)' }}>Analyses Avancées</h2>
-            <p>Module en cours de développement...</p>
+            <h2 style={{ color: 'var(--text-secondary)' }}>Analyses Prédictives</h2>
+            <p>Intelligence artificielle en cours d'intégration pour la maintenance prédictive...</p>
           </div>
         );
       default:
