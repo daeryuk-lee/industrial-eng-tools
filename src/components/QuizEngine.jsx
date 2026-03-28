@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import stringSimilarity from 'string-similarity';
 import { frenchDepartments, usStates, geoCulture } from '../data/geographyData';
 import { translations } from '../data/translations';
+import { koreanCapitals } from '../data/koreanData';
 import InteractiveMap from './InteractiveMap';
 
 const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack }) => {
@@ -13,6 +14,7 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack }) => {
   const [userInput, setUserInput] = useState('');
   const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const t = translations[lang];
 
   useEffect(() => {
@@ -21,22 +23,27 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack }) => {
 
   const fetchData = async () => {
     setLoading(true);
+    setError(null);
     let rawData = [];
     
-    if (mode === 'flags' || mode === 'capitals') {
-      try {
-        const res = await fetch('https://restcountries.com/v3.1/all');
+    try {
+      if (mode === 'flags' || mode === 'capitals') {
+        const res = await fetch('https://restcountries.com/v3.1/all?fields=name,capital,flags,translations,cca3');
+        if (!res.ok) throw new Error("Erreur serveur API");
         const data = await res.json();
         rawData = data.filter(c => c.capital && c.capital.length > 0);
-      } catch (e) {
-        console.error("Erreur API", e);
-      }
-    } else if (mode === 'france') rawData = frenchDepartments;
-    else if (mode === 'usa') rawData = usStates;
-    else if (mode === 'culture') rawData = geoCulture;
+      } else if (mode === 'france') rawData = frenchDepartments;
+      else if (mode === 'usa') rawData = usStates;
+      else if (mode === 'culture') rawData = geoCulture;
 
-    generateQuestions(rawData);
-    setLoading(false);
+      if (rawData.length === 0) throw new Error("Aucune donnée disponible");
+      generateQuestions(rawData);
+    } catch (e) {
+      console.error(e);
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getTranslatedName = (country) => {
@@ -46,12 +53,10 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack }) => {
     return country.name.common;
   };
 
-  // Simulation simple de traduction des capitales en Coréen (Dictionnaire local)
   const getTranslatedCapital = (country) => {
-    const cap = country.capital[0];
-    if (lang !== 'kor') return cap;
-    // Ici on pourrait ajouter un dictionnaire étendu. Fallback sur le nom original.
-    return cap; 
+    const original = country.capital[0];
+    if (lang === 'kor') return koreanCapitals[original] || original;
+    return original;
   };
 
   const generateQuestions = (data) => {
@@ -100,20 +105,13 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack }) => {
     const currentQ = questions[currentIdx];
     const normalizedTarget = currentQ.answer.toLowerCase().trim();
     const normalizedInput = choice.toLowerCase().trim();
-    
-    // Comparaison intelligente
     const similarity = stringSimilarity.compareTwoStrings(normalizedInput, normalizedTarget);
     
     let points = 0;
     let type = 'wrong';
 
-    if (normalizedInput === normalizedTarget) {
-      points = 1;
-      type = 'correct';
-    } else if (similarity > 0.75) { // Tolérance orthographe
-      points = 0.5;
-      type = 'almost';
-    }
+    if (normalizedInput === normalizedTarget) { points = 1; type = 'correct'; }
+    else if (similarity > 0.7) { points = 0.5; type = 'almost'; }
 
     setScore(s => s + points);
     setSelectedAnswer(choice);
@@ -132,11 +130,12 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack }) => {
   };
 
   if (loading) return <div className="container card animate-fade">{t.loading}</div>;
+  if (error) return <div className="container card animate-fade">❌ Erreur : {error} <button onClick={onBack}>Retour</button></div>;
 
   if (showResult) return (
-    <div className="container card animate-fade">
+    <div className="container card animate-fade" style={{ textAlign: 'center' }}>
       <h2>{t.results}</h2>
-      <p style={{ fontSize: '2.5rem', margin: '1.5rem 0', color: 'var(--primary)' }}>{score} / {questions.length}</p>
+      <p style={{ fontSize: '3rem', margin: '1.5rem 0', color: 'var(--primary)', fontWeight: '800' }}>{score} / {questions.length}</p>
       <button className="btn btn-primary" onClick={onBack}>{t.playAgain}</button>
     </div>
   );
@@ -145,27 +144,27 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack }) => {
 
   return (
     <div className="container animate-fade">
-      <div className="card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+      <div className="card quiz-layout" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2.5rem', minHeight: '450px' }}>
         <div className="quiz-content">
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', color: 'var(--text-light)', fontWeight: '600' }}>
             <span>{t.question} {currentIdx + 1} / {questions.length}</span>
             <span style={{ color: 'var(--secondary)' }}>{t.score} : {score}</span>
           </div>
 
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             {q.question.type === 'image' ? (
-              <img src={q.question.value} alt="Flag" style={{ height: '100px', borderRadius: '8px', boxShadow: 'var(--shadow)', marginBottom: '1.5rem' }} />
+              <img src={q.question.value} alt="Flag" style={{ height: '120px', borderRadius: '12px', boxShadow: 'var(--shadow)', marginBottom: '1.5rem', border: '1px solid #eee' }} />
             ) : null}
-            <h3 style={{ fontSize: '1.4rem', lineHeight: '1.4' }}>{q.question.value}</h3>
+            <h3 style={{ fontSize: '1.6rem', lineHeight: '1.4', color: 'var(--text-dark)' }}>{q.question.value}</h3>
           </div>
 
           {isTyping ? (
             <form onSubmit={(e) => { e.preventDefault(); handleAnswer(userInput); }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <input 
-                type="text" autoFocus className="choice-btn" style={{ borderRadius: '12px', border: '2px solid var(--primary)' }}
-                value={userInput} onChange={(e) => setUserInput(e.target.value)} disabled={!!selectedAnswer}
+                type="text" autoFocus className="choice-btn" style={{ borderRadius: '12px', border: '2px solid var(--primary)', fontSize: '1.2rem', padding: '1rem' }}
+                value={userInput} onChange={(e) => setUserInput(e.target.value)} disabled={!!selectedAnswer} placeholder="..."
               />
-              <button type="submit" className="btn btn-primary" disabled={!!selectedAnswer}>Valider</button>
+              <button type="submit" className="btn btn-primary" disabled={!!selectedAnswer} style={{ padding: '1rem' }}>Valider</button>
             </form>
           ) : (
             <div className="choices">
@@ -173,6 +172,7 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack }) => {
                 <button 
                   key={i} className={`btn choice-btn ${selectedAnswer === c ? (c === q.answer ? 'choice-correct' : 'choice-wrong') : (selectedAnswer && c === q.answer ? 'choice-correct' : '')}`}
                   onClick={() => handleAnswer(c)}
+                  style={{ fontSize: '1rem', padding: '1rem' }}
                 >
                   {c}
                 </button>
@@ -187,7 +187,7 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack }) => {
           )}
         </div>
 
-        <div className="quiz-map">
+        <div className="quiz-map" style={{ display: 'flex', alignItems: 'center' }}>
           <InteractiveMap highlightCode={q.code} mode={mode} />
         </div>
       </div>
