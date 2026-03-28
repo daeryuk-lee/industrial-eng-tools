@@ -10,6 +10,7 @@ import SpaceInvaders from './components/games/SpaceInvaders';
 import PacMan from './components/games/PacMan';
 import BubbleBobble from './components/games/BubbleBobble';
 import StreetFighter from './components/games/StreetFighter';
+import SurvivUltra from './components/games/SurvivUltra';
 
 function App() {
   const [currentGame, setCurrentGame] = useState(null);
@@ -27,6 +28,7 @@ function App() {
       case 'pacman': return <PacMan {...props} />;
       case 'bubble-bobble': return <BubbleBobble {...props} />;
       case 'street-fighter': return <StreetFighter {...props} />;
+      case 'surviv': return <SurvivUltra {...props} />;
       default: return <Lobby onSelectGame={(id) => setCurrentGame(id)} />;
     }
   };

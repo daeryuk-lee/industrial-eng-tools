@@ -7,6 +7,7 @@ const games = [
   { id: 'pong', name: 'Pong', icon: Tablet, color: 'var(--accent-cyan)', desc: 'Le classique du tennis de table.' },
   { id: 'pacman', name: 'Pac-Man', icon: Ghost, color: 'yellow', desc: 'Évitez les fantômes et mangez tout.' },
   { id: 'space-invaders', name: 'Space Invaders', icon: Rocket, color: 'var(--accent-green)', desc: 'Défendez la Terre contre les aliens.' },
+  { id: 'surviv', name: 'Surviv Ultra', icon: CircleDot, color: 'var(--accent-cyan)', desc: 'Battle Royale 2D : Loot, tir et survie.' },
   { id: 'bubble-bobble', name: 'Bubble Bobble', icon: CircleDot, color: 'var(--accent-pink)', desc: 'Capturez les ennemis dans vos bulles.' },
   { id: 'street-fighter', name: 'Street Fighter', icon: Swords, color: 'var(--accent-red)', desc: 'Combattez l\'IA en duel.' },
   { id: 'minesweeper', name: 'Démineur', icon: Bomb, color: 'var(--accent-pink)', desc: 'Nettoyez la grille avec logique.' },
