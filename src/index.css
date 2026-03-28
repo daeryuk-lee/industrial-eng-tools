@@ -48,7 +48,51 @@ h1, h2, h3, .font-gaming {
   box-shadow: 0 0 25px rgba(192, 132, 252, 0.3);
 }
 
-.neon-text-purple { color: var(--accent-purple); text-shadow: 0 0 10px rgba(192, 132, 252, 0.5); }
+/* CRT & Arcade Effects Layer */
+.arcade-monitor::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  z-index: 10;
+  background-size: 100% 3px, 3px 100%;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.arcade-monitor::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: radial-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 100%), 
+              radial-gradient(rgba(192, 132, 252, 0.05) 0%, transparent 80%);
+  z-index: 11;
+  pointer-events: none;
+}
+
+.screen-shake {
+  animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.hit-flash {
+  animation: flash 0.1s ease-out;
+}
+
+@keyframes flash {
+  from { filter: brightness(3); }
+  to { filter: brightness(1); }
+}
+
+.neon-text-purple { color: var(--accent-purple); text-shadow: 0 0 10px rgba(192, 132, 252, 0.8), 0 0 20px rgba(192, 132, 252, 0.3); }
 .neon-text-cyan { color: var(--accent-cyan); text-shadow: 0 0 10px rgba(34, 211, 238, 0.5); }
 
 .glass-card {
