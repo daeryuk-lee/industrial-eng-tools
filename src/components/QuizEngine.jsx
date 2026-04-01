@@ -5,6 +5,7 @@ import { translations } from '../data/translations';
 import { koreanCapitals, koreanStates, koreanDepartments } from '../data/koreanData';
 import { frenchCapitals } from '../data/frenchCapitals';
 import InteractiveMap from './InteractiveMap';
+import { supabase } from '../supabase';
 
 const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode }) => {
   const [questions, setQuestions] = useState([]);
@@ -463,12 +464,6 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
         )}
       </div>
       <button className="btn" style={{ marginTop: '2rem', background: 'transparent', color: 'var(--text-light)' }} onClick={onBack}>← {t.back}</button>
-    </div>
-  );
-};
-
-export default QuizEngine;
-ht)' }} onClick={onBack}>← {t.back}</button>
     </div>
   );
 };
