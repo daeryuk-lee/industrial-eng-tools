@@ -288,15 +288,41 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
     }, points === 1 && isTyping ? 600 : 2000);
   };
 
-  const saveRecord = (e) => {
+  const saveRecord = async (e) => {
     e.preventDefault();
     if (!playerName.trim() || saved) return;
+    
+    const newRecord = { 
+      name: playerName, 
+      score: score, 
+      total: questions.length, 
+      time: time, 
+      mode: mode, 
+      type: isTyping ? (isMarathon ? 'marathon' : 'typing') : 'qcm', 
+      date: new Date().toISOString() 
+    };
+
+    // Sauvegarde Locale (Fallback)
     const recordKey = `geomaster_leaderboard`;
     const existing = JSON.parse(localStorage.getItem(recordKey) || '[]');
-    const newRecord = { name: playerName, score: score, total: questions.length, time: time, mode: mode, type: isTyping ? (isMarathon ? 'marathon' : 'typing') : 'qcm', date: new Date().toISOString() };
     existing.push(newRecord);
     existing.sort((a, b) => b.score !== a.score ? b.score - a.score : a.time - b.time);
     localStorage.setItem(recordKey, JSON.stringify(existing.slice(0, 500)));
+
+    // Sauvegarde en ligne (Supabase)
+    const { supabase } = await import('../supabase');
+    if (supabase) {
+        try {
+            const { error } = await supabase
+                .from('leaderboard')
+                .insert([newRecord]);
+            if (error) throw error;
+            console.log("Score synchronisé avec succès !");
+        } catch (err) {
+            console.error("Erreur de synchronisation Supabase:", err);
+        }
+    }
+
     setSaved(true);
   };
 
