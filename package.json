@@ -1,9 +1,12 @@
 {
-  "name": "codespaces-react",
+  "name": "geomaster",
   "version": "0.1.0",
   "private": true,
+  "author": "c0bb237",
+  "description": "GeoMaster - L'outil ultime pour maîtriser la géographie mondiale.",
   "type": "module",
   "dependencies": {
+    "@supabase/supabase-js": "^2.100.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",

@@ -55,7 +55,7 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
     
     try {
       if (mode === 'flags' || mode === 'capitals' || mode === 'islands') {
-        const res = await fetch('https://restcountries.com/v3.1/all?fields=name,capital,flags,translations,cca3,latlng,independent');
+        const res = await fetch('https://restcountries.com/v3.1/all?fields=name,capital,flags,translations,cca3,latlng,independent,capitalInfo');
         if (!res.ok) throw new Error("Erreur serveur API");
         const resData = await res.json();
         
@@ -140,7 +140,7 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
         answer = name;
         choices = [answer, ...data.filter(d => getTranslatedName(d) !== answer).sort(() => 0.5 - Math.random()).slice(0, 3).map(d => getTranslatedName(d))];
         code = item.cca3;
-        latlng = item.latlng;
+        latlng = item.capitalInfo?.latlng || item.latlng;
       } else if (mode === 'capitals') {
         const name = getTranslatedName(item);
         const capitals = getTranslatedCapitals(item);
@@ -151,7 +151,7 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
             return !dCaps.some(c => capitals.includes(c));
         }).sort(() => 0.5 - Math.random()).slice(0, 3).map(d => getTranslatedCapitals(d)[0])];
         code = item.cca3;
-        latlng = item.latlng;
+        latlng = item.capitalInfo?.latlng || item.latlng;
       } else if (mode === 'france') {
         const name = getTranslatedDept(item.name, lang === 'kor');
         const prefecture = getTranslatedDept(item.prefecture, lang === 'kor');
@@ -202,8 +202,11 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
     if (!str) return "";
     let n = str.trim().toLowerCase();
     n = n.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    n = n.replace(/[-\s]/g, "");
-    // Special case for Vatican
+    // Supprimer les articles au début
+    n = n.replace(/^(le\s+|la\s+|les\s+|l'|the\s+|a\s+|an\s+|de\s+|des\s+|du\s+)/g, "");
+    // Supprimer ponctuation, tirets et espaces
+    n = n.replace(/[-\s\.\,\(\)\']/g, "");
+    // Cas particuliers
     if (n === "vatican" || n === "citevatican") return "vatican";
     return n;
   };
@@ -220,7 +223,8 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
         const targetQIdx = questions.findIndex(q => {
             if (foundItems.includes(Array.isArray(q.answer) ? q.answer[0] : q.answer)) return false;
             const qAs = Array.isArray(q.answer) ? q.answer : [q.answer];
-            return qAs.some(a => normalize(a) === normalizedInput);
+            const normalizedQAs = qAs.map(a => normalize(a));
+            return normalizedQAs.some(a => a === normalizedInput || (normalizedInput.length > 3 && a.includes(normalizedInput)));
         });
         
         if (targetQIdx !== -1) {
@@ -238,7 +242,14 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
         return;
     }
 
-    let isCorrect = normalizedTargetAnswers.some(a => a === normalizedInput);
+    let isCorrect = normalizedTargetAnswers.some(a => {
+        if (a === normalizedInput) return true;
+        // Tolérance pour les réponses partielles (ex: "Indien" pour "Océan Indien", "Nil" pour "Le Nil")
+        // On utilise >= 3 pour accepter des noms courts comme "Nil", "Erie", etc.
+        if (normalizedInput.length >= 3 && a.includes(normalizedInput)) return true;
+        if (a.length >= 3 && normalizedInput.includes(a)) return true;
+        return false;
+    });
     let isAlmost = false;
     let points = 0;
     let type = 'wrong';
@@ -349,6 +360,7 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
   }
 
   const q = questions[currentIdx];
+  const targetAnswers = q && q.answer ? (Array.isArray(q.answer) ? q.answer : [q.answer]) : [];
   const isMapOnly = displayMode === 'maponly';
   const isNoMap = (displayMode === 'nomap' && !isMapRequirement) || isCulture;
 

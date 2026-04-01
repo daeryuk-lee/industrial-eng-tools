@@ -1,70 +1,56 @@
-# GitHub Codespaces ♥️ React
+# 🌍 GeoMaster
 
-Welcome to your shiny new Codespace running React! We've got everything fired up and running for you to explore React.
+**GeoMaster** est l'outil ultime pour maîtriser la géographie mondiale de façon ludique et interactive. Conçue par **c0bb237**, cette application transforme l'apprentissage des pays et des capitales en une expérience immersive.
 
-You've got a blank canvas to work on from a git perspective as well. There's a single initial commit with the what you're seeing right now - where you go from here is up to you!
+Que vous soyez un étudiant préparant un examen ou simplement un passionné souhaitant parfaire sa culture générale, GeoMaster vous accompagne dans votre voyage à travers le globe.
 
-Everything you do here is contained within this one codespace. There is no repository on GitHub yet. If and when you’re ready you can click "Publish Branch" and we’ll create your repository and push up your project. If you were just exploring then and have no further need for this code then you can simply delete your codespace and it's gone forever.
+---
 
-This project was bootstrapped for you with [Vite](https://vitejs.dev/).
+## ✨ Fonctionnalités Clés
 
-## Available Scripts
+- 🧠 **Quiz Interactifs** : Testez vos connaissances avec des défis variés sur les capitales, les drapeaux et les statistiques démographiques.
+- 🗺️ **Cartes Dynamiques** : Explorez le monde grâce à une interface cartographique intuitive qui rend la géographie visuelle et concrète.
+- 📊 **Suivi de Progression** : Visualisez vos performances en temps réel grâce à des graphiques détaillés et suivez votre évolution.
+- 🌐 **Apprentissage Multi-langues** : Une interface accessible en plusieurs langues pour un apprentissage sans frontières.
+- 📱 **Expérience Fluide** : Une application réactive et moderne, optimisée pour une utilisation sur tous vos appareils.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## 🚀 Démarrage Rapide
 
-We've already run this for you in the `Codespaces: server` terminal window below. If you need to stop the server for any reason you can just run `npm start` again to bring it back online.
+### Prérequis
 
-Runs the app in the development mode.\
-Open [http://localhost:3000/](http://localhost:3000/) in the built-in Simple Browser (`Cmd/Ctrl + Shift + P > Simple Browser: Show`) to view your running application.
+Assurez-vous d'avoir [Node.js](https://nodejs.org/) installé sur votre machine.
 
-The page will reload automatically when you make changes.\
-You may also see any lint errors in the console.
+### Installation
 
-### `npm test`
+1. Installez les dépendances :
+   ```bash
+   npm install
+   ```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. Lancez le serveur de développement :
+   ```bash
+   npm start
+   ```
 
-### `npm run build`
+3. Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur pour commencer l'aventure !
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🛠️ Technologies Utilisées
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- **React** : Pour une interface utilisateur dynamique et réactive.
+- **Vite** : Pour un environnement de développement ultra-rapide.
+- **Lucide-React** : Pour une iconographie élégante et moderne.
+- **Recharts** : Pour des visualisations de données claires.
 
-## Learn More
+---
 
-You can learn more in the [Vite documentation](https://vitejs.dev/guide/).
+## 👤 Auteur
 
-To learn Vitest, a Vite-native testing framework, go to [Vitest documentation](https://vitest.dev/guide/)
+- **c0bb237** - *Créateur et Mainteneur*
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+---
 
-### Code Splitting
-
-This section has moved here: [https://sambitsahoo.com/blog/vite-code-splitting-that-works.html](https://sambitsahoo.com/blog/vite-code-splitting-that-works.html)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://github.com/btd/rollup-plugin-visualizer#rollup-plugin-visualizer](https://github.com/btd/rollup-plugin-visualizer#rollup-plugin-visualizer)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://dev.to/hamdankhan364/simplifying-progressive-web-app-pwa-development-with-vite-a-beginners-guide-38cf](https://dev.to/hamdankhan364/simplifying-progressive-web-app-pwa-development-with-vite-a-beginners-guide-38cf)
-
-### Advanced Configuration
-
-This section has moved here: [https://vitejs.dev/guide/build.html#advanced-base-options](https://vitejs.dev/guide/build.html#advanced-base-options)
-
-### Deployment
-
-This section has moved here: [https://vitejs.dev/guide/build.html](https://vitejs.dev/guide/build.html)
-
-### Troubleshooting
-
-This section has moved here: [https://vitejs.dev/guide/troubleshooting.html](https://vitejs.dev/guide/troubleshooting.html)
+© 2026 GeoMaster. Tous droits réservés.

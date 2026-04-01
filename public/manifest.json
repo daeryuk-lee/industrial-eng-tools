@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "GeoMaster",
+  "name": "GeoMaster - Apprentissage Géographique",
   "icons": [
     {
       "src": "favicon.ico",

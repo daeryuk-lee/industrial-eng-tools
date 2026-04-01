@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { supabase } from '../supabase';
 import { translations } from '../data/translations';
-import { Moon, Sun, ChevronDown, Check, MessageCircle, X } from 'lucide-react';
+import { Moon, Sun, ChevronDown, Check, MessageCircle, X, Trophy } from 'lucide-react';
 
 const CustomSelect = ({ label, value, options, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -46,7 +47,7 @@ const CustomSelect = ({ label, value, options, onChange }) => {
   );
 };
 
-const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCount, setQCount, onSelectMode, displayMode, setDisplayMode, onShowLegal, theme, toggleTheme }) => {
+const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCount, setQCount, onSelectMode, displayMode, setDisplayMode, onShowLegal, onShowStats, theme, toggleTheme }) => {
   const t = translations[lang];
   const [leaderboard, setLeaderboard] = useState([]);
   const [lbTab, setLbTab] = useState('permanent');
@@ -55,6 +56,7 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCoun
   const [feedback, setFeedback] = useState('');
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [configMode, setConfigMode] = useState(null);
   
   const modes = [
     { id: 'flags', name: t.modes.flags, icon: '🏳️' },
@@ -63,20 +65,32 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCoun
     { id: 'france', name: t.modes.france, icon: '🥖' },
     { id: 'usa', name: t.modes.usa, icon: '🗽' },
     { id: 'south_korea', name: t.modes.south_korea, icon: '🏯' },
-    { id: 'cameroon', name: t.modes.cameroon, icon: '🦁' },
     { id: 'culture', name: t.modes.culture, icon: '🌎' },
   ];
 
-  const visibleModes = modes.filter(mode => {
-    if (mode.id === 'cameroon') return displayMode === 'marathon';
-    return true;
-  });
-
   useEffect(() => {
-    const recordKey = `geomaster_leaderboard`;
-    const records = JSON.parse(localStorage.getItem(recordKey) || '[]');
-    setLeaderboard(records);
-  }, []);
+    const fetchLeaderboard = async () => {
+        const recordKey = `geomaster_leaderboard`;
+        const localRecords = JSON.parse(localStorage.getItem(recordKey) || '[]');
+        setLeaderboard(localRecords);
+
+        try {
+            const { data, error } = await supabase
+                .from('leaderboard')
+                .select('*')
+                .order('score', { ascending: false })
+                .order('time', { ascending: true })
+                .limit(500);
+            
+            if (data) setLeaderboard(data);
+            if (error) throw error;
+        } catch (err) {
+            console.error("Erreur de récupération Supabase:", err);
+        }
+    };
+
+    fetchLeaderboard();
+  }, [isModalOpen]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -93,7 +107,8 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCoun
           if (r.total !== targetTotal && !(lbCount === 'all_marathon' && r.type === 'marathon')) return false;
       }
       if (lbTab === 'permanent') return true;
-      const date = new Date(r.date);
+      const date = new Date(r.date || r.created_at);
+      if (isNaN(date.getTime())) return true;
       if (lbTab === 'monthly') return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
       if (lbTab === 'weekly') {
         const oneWeekAgo = new Date();
@@ -101,10 +116,10 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCoun
         return date > oneWeekAgo;
       }
       return true;
-    }).slice(0, 10);
+    }).slice(0, 50);
   };
 
-  const DISCORD_WEBHOOK_URL = ""; 
+  const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1487822848180486304/A_4r9q2GnVjXKhFMZ_qu0yWsBwnTJflEIvLgP6ekiG10U71Gtq5XfQKtiFW0YrO5mQN6"; 
 
   const handleFeedback = async (e) => {
     e.preventDefault();
@@ -134,17 +149,19 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCoun
   };
 
   useEffect(() => {
-    if ((qCount !== 'all' || !isTyping) && displayMode === 'marathon') {
-        setDisplayMode('classic');
+    if (displayMode === 'marathon') {
+        if (!isFull) setIsFull(true);
+        if (!isTyping) setIsTyping(true);
+        if (qCount !== 'all') setQCount('all');
     }
-  }, [qCount, isTyping, displayMode]);
+  }, [displayMode, isFull, isTyping, qCount, setIsFull, setIsTyping, setQCount]);
 
   const displayOptions = [
     { value: 'classic', label: t.ui.modeClassic },
     { value: 'nomap', label: t.ui.modeNoMap },
     { value: 'maponly', label: t.ui.modeMapOnly },
+    { value: 'marathon', label: t.ui.modeMarathon },
   ];
-  if (isFull && isTyping) displayOptions.push({ value: 'marathon', label: t.ui.modeMarathon });
 
   const qCountOptions = [
     { value: '10', label: '10 Questions' },
@@ -167,6 +184,9 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCoun
     <div className="container animate-fade">
       <header style={{ textAlign: 'center', marginBottom: '3.5rem', position: 'relative' }}>
         <div style={{ position: 'absolute', top: '0', right: '0', display: 'flex', gap: '10px' }}>
+            <button className="btn" onClick={onShowStats} style={{ padding: '10px', borderRadius: '50%', width: '45px', height: '45px', background: 'var(--bg-card)' }}>
+                <Trophy size={20} />
+            </button>
             <button className="btn" onClick={() => setIsModalOpen(true)} style={{ padding: '10px', borderRadius: '50%', width: '45px', height: '45px', background: 'var(--bg-card)' }}>
                 <MessageCircle size={20} />
             </button>
@@ -187,69 +207,84 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCoun
         <p style={{ color: 'var(--text-light)', fontSize: '1.3rem', fontWeight: '500', opacity: 0.8 }}>{t.subtitle}</p>
       </header>
 
-      <div className="card" style={{ marginBottom: '3rem', display: 'flex', flexWrap: 'wrap', gap: '2.5rem', justifyContent: 'center', alignItems: 'flex-end', padding: '2rem', position: 'relative', zIndex: 100 }}>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-light)', textTransform: 'uppercase', marginLeft: '4px', marginBottom: '4px' }}>Format</span>
-            <div style={{ display: 'flex', background: 'var(--bg-app)', padding: '4px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                <button className={`btn ${!isTyping ? 'btn-primary' : ''}`} onClick={() => setIsTyping(false)} style={{ borderRadius: '12px', border: 'none', padding: '10px 20px', fontSize: '0.85rem' }}>{t.ui.qcm}</button>
-                <button className={`btn ${isTyping ? 'btn-primary' : ''}`} onClick={() => setIsTyping(true)} style={{ borderRadius: '12px', border: 'none', padding: '10px 20px', fontSize: '0.85rem' }}>{t.ui.typing}</button>
+      {configMode ? (
+        <div className="card animate-pop" style={{ maxWidth: '800px', margin: '0 auto 4rem auto', padding: '3rem', border: '3px solid var(--primary)' }}>
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                <span style={{ fontSize: '4rem' }}>{modes.find(m => m.id === configMode)?.icon}</span>
+                <h2 style={{ fontSize: '2.5rem', fontWeight: '900', marginTop: '1rem' }}>{modes.find(m => m.id === configMode)?.name}</h2>
             </div>
-        </div>
 
-        <CustomSelect label={t.ui.displayMode} value={displayMode} options={displayOptions} onChange={setDisplayMode} />
-        <CustomSelect label={t.settings.qCount} value={qCount} options={qCountOptions} onChange={(val) => { setQCount(val); setIsFull(val === 'all'); }} />
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '3rem' }}>
-        <div className="grid-modes">
-          {visibleModes.map(mode => (
-            <div key={mode.id} className="card mode-card" onClick={() => onSelectMode(mode.id)} style={{ position: 'relative', overflow: 'hidden', border: '2px solid var(--border)' }}>
-              <span className="mode-icon">{mode.icon}</span>
-              <h3 style={{ margin: '0.5rem 0', fontWeight: '900', fontSize: '1.4rem' }}>{mode.name}</h3>
-              {isFull && <div style={{ position: 'absolute', top: '15px', right: '-35px', background: 'var(--secondary)', color: 'white', padding: '5px 40px', transform: 'rotate(45deg)', fontSize: '0.75rem', fontWeight: '900', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>FULL</div>}
-            </div>
-          ))}
-        </div>
-
-        <div className="card" style={{ padding: '2rem', maxHeight: '800px', display: 'flex', flexDirection: 'column', border: '2px solid var(--border)' }}>
-          <h3 style={{ margin: '0 0 2rem 0', color: 'var(--primary)', textAlign: 'center', fontSize: '1.8rem', fontWeight: '900' }}>🏆 {t.ui.leaderboard}</h3>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '2rem' }}>
-            <CustomSelect label={t.ui.lbCat} value={lbMode} options={lbModeOptions} onChange={setLbMode} />
-            <CustomSelect label={t.ui.lbCount} value={lbCount} options={lbCountOptions} onChange={setLbCount} />
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '2rem', background: 'var(--bg-app)', padding: '6px', borderRadius: '16px' }}>
-            <button onClick={() => setLbTab('permanent')} className={`btn ${lbTab === 'permanent' ? 'btn-primary' : ''}`} style={{ flex: 1, padding: '10px', fontSize: '0.8rem', border: 'none' }}>{t.ui.lbAll}</button>
-            <button onClick={() => setLbTab('monthly')} className={`btn ${lbTab === 'monthly' ? 'btn-primary' : ''}`} style={{ flex: 1, padding: '10px', fontSize: '0.8rem', border: 'none' }}>{t.ui.lbMonth}</button>
-            <button onClick={() => setLbTab('weekly')} className={`btn ${lbTab === 'weekly' ? 'btn-primary' : ''}`} style={{ flex: 1, padding: '10px', fontSize: '0.8rem', border: 'none' }}>{t.ui.lbWeek}</button>
-          </div>
-
-          <div style={{ flex: 1, overflowY: 'auto', marginBottom: '1.5rem', minHeight: '300px', paddingRight: '5px' }}>
-            {getFilteredLeaderboard().length === 0 ? (
-                <p style={{ textAlign: 'center', color: 'var(--text-light)', fontSize: '1rem', marginTop: '4rem', opacity: 0.5 }}>Aucun record.</p>
-            ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {getFilteredLeaderboard().map((record, i) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem', background: i === 0 ? 'rgba(245, 158, 11, 0.15)' : 'var(--bg-app)', borderRadius: '16px', border: '2px solid', borderColor: i === 0 ? '#f59e0b' : 'var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <span style={{ fontWeight: '900', color: i === 0 ? '#f59e0b' : 'var(--text-light)', fontSize: '1.1rem', width: '30px' }}>{i + 1}</span>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontWeight: '800', fontSize: '1.05rem' }}>{record.name}</span>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', fontWeight: '700' }}>{record.mode} • {record.type}</span>
-                        </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2.5rem', justifyContent: 'center', alignItems: 'flex-end', marginBottom: '3rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-light)', textTransform: 'uppercase', marginLeft: '4px', marginBottom: '4px' }}>Format</span>
+                    <div style={{ display: 'flex', background: 'var(--bg-app)', padding: '4px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                        <button className={`btn ${!isTyping && displayMode !== 'marathon' ? 'btn-primary' : ''}`} onClick={() => { setIsTyping(false); if (displayMode === 'marathon') setDisplayMode('classic'); }} style={{ borderRadius: '12px', border: 'none', padding: '10px 20px', fontSize: '0.85rem' }}>{t.ui.qcm}</button>
+                        <button className={`btn ${isTyping && displayMode !== 'marathon' ? 'btn-primary' : ''}`} onClick={() => { setIsTyping(true); if (displayMode === 'marathon') setDisplayMode('classic'); }} style={{ borderRadius: '12px', border: 'none', padding: '10px 20px', fontSize: '0.85rem' }}>{t.ui.typing}</button>
+                        <button className={`btn ${displayMode === 'marathon' ? 'btn-primary' : ''}`} onClick={() => setDisplayMode('marathon')} style={{ borderRadius: '12px', border: 'none', padding: '10px 20px', fontSize: '0.85rem' }}>{t.ui.marathon}</button>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontWeight: '900', color: 'var(--primary)', fontSize: '1.1rem' }}>{record.score}/{record.total}</div>
-                        <div style={{ color: 'var(--text-light)', fontSize: '0.8rem', fontWeight: '700' }}>⏱️ {formatTime(record.time)}</div>
-                    </div>
-                    </div>
-                ))}
                 </div>
-            )}
-          </div>
+
+                <CustomSelect label={t.ui.displayMode} value={displayMode} options={displayOptions} onChange={setDisplayMode} />
+                <CustomSelect label={t.settings.qCount} value={qCount} options={qCountOptions} onChange={(val) => { setQCount(val); setIsFull(val === 'all'); }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem' }}>
+                <button className="btn" onClick={() => setConfigMode(null)} style={{ flex: 1, padding: '1.2rem', fontWeight: 'bold', background: 'var(--bg-app)' }}>{t.back}</button>
+                <button className="btn btn-primary" onClick={() => onSelectMode(configMode)} style={{ flex: 2, padding: '1.2rem', fontWeight: '900', fontSize: '1.2rem' }}>{t.start} 🚀</button>
+            </div>
         </div>
-      </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '3rem' }}>
+            <div className="grid-modes">
+            {modes.map(mode => (
+                <div key={mode.id} className="card mode-card" onClick={() => setConfigMode(mode.id)} style={{ position: 'relative', overflow: 'hidden', border: '2px solid var(--border)' }}>
+                <span className="mode-icon">{mode.icon}</span>
+                <h3 style={{ margin: '0.5rem 0', fontWeight: '900', fontSize: '1.4rem' }}>{mode.name}</h3>
+                {isFull && <div style={{ position: 'absolute', top: '15px', right: '-35px', background: 'var(--secondary)', color: 'white', padding: '5px 40px', transform: 'rotate(45deg)', fontSize: '0.75rem', fontWeight: '900', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>FULL</div>}
+                </div>
+            ))}
+            </div>
+
+            <div className="card" style={{ padding: '2rem', maxHeight: '800px', display: 'flex', flexDirection: 'column', border: '2px solid var(--border)' }}>
+                <h3 style={{ margin: '0 0 2rem 0', color: 'var(--primary)', textAlign: 'center', fontSize: '1.8rem', fontWeight: '900' }}>🏆 {t.ui.leaderboard}</h3>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '2rem' }}>
+                    <CustomSelect label={t.ui.lbCat} value={lbMode} options={lbModeOptions} onChange={setLbMode} />
+                    <CustomSelect label={t.ui.lbCount} value={lbCount} options={lbCountOptions} onChange={setLbCount} />
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '2rem', background: 'var(--bg-app)', padding: '6px', borderRadius: '16px' }}>
+                    <button onClick={() => setLbTab('permanent')} className={`btn ${lbTab === 'permanent' ? 'btn-primary' : ''}`} style={{ flex: 1, padding: '10px', fontSize: '0.8rem', border: 'none' }}>{t.ui.lbAll}</button>
+                    <button onClick={() => setLbTab('monthly')} className={`btn ${lbTab === 'monthly' ? 'btn-primary' : ''}`} style={{ flex: 1, padding: '10px', fontSize: '0.8rem', border: 'none' }}>{t.ui.lbMonth}</button>
+                    <button onClick={() => setLbTab('weekly')} className={`btn ${lbTab === 'weekly' ? 'btn-primary' : ''}`} style={{ flex: 1, padding: '10px', fontSize: '0.8rem', border: 'none' }}>{t.ui.lbWeek}</button>
+                </div>
+
+                <div style={{ flex: 1, overflowY: 'auto', marginBottom: '1.5rem', minHeight: '300px', paddingRight: '5px' }}>
+                    {getFilteredLeaderboard().length === 0 ? (
+                        <p style={{ textAlign: 'center', color: 'var(--text-light)', fontSize: '1rem', marginTop: '4rem', opacity: 0.5 }}>Aucun record.</p>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {getFilteredLeaderboard().map((record, i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem', background: i === 0 ? 'rgba(245, 158, 11, 0.15)' : 'var(--bg-app)', borderRadius: '16px', border: '2px solid', borderColor: i === 0 ? '#f59e0b' : 'var(--border)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <span style={{ fontWeight: '900', color: i === 0 ? '#f59e0b' : 'var(--text-light)', fontSize: '1.1rem', width: '30px' }}>{i + 1}</span>
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <span style={{ fontWeight: '800', fontSize: '1.05rem' }}>{record.name}</span>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', fontWeight: '700' }}>{record.mode} • {record.type}</span>
+                                </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontWeight: '900', color: 'var(--primary)', fontSize: '1.1rem' }}>{record.score}/{record.total}</div>
+                                <div style={{ color: 'var(--text-light)', fontSize: '0.8rem', fontWeight: '700' }}>⏱️ {formatTime(record.time)}</div>
+                            </div>
+                            </div>
+                        ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>

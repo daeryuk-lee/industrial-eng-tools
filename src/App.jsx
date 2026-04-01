@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import GeoHub from './components/GeoHub';
 import QuizEngine from './components/QuizEngine';
 import Legal from './components/Legal';
+import UserStats from './components/UserStats';
 
 function App() {
   const [currentMode, setCurrentMode] = useState(null);
+  const [showStats, setShowStats] = useState(false);
   const [lang, setLang] = useState('fr');
   const [isFull, setIsFull] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -26,6 +28,10 @@ function App() {
     return <Legal lang={lang} onBack={() => setShowLegal(false)} />;
   }
 
+  if (showStats) {
+    return <UserStats lang={lang} onBack={() => setShowStats(false)} />;
+  }
+
   return (
     <div className="App">
       {!currentMode ? (
@@ -42,6 +48,7 @@ function App() {
           setDisplayMode={setDisplayMode}
           onSelectMode={(id) => setCurrentMode(id)} 
           onShowLegal={() => setShowLegal(true)}
+          onShowStats={() => setShowStats(true)}
           theme={theme}
           toggleTheme={toggleTheme}
         />

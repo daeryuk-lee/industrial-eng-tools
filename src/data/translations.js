@@ -36,7 +36,7 @@ export const translations = {
       modeClassic: "Classique (Un par un)",
       modeNoMap: "Aveugle (Sans Carte)",
       modeMapOnly: "Cartographe (Carte Seule)",
-      modeMarathon: "Marathon (Grille Complète)",
+      modeMarathon: "Mode Marathon",
       time: "Temps",
       leaderboard: "Palmarès",
       lbAll: "Tout temps",

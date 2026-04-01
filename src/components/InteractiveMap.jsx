@@ -1,253 +1,176 @@
 import React, { useEffect, useState, useRef, useMemo, memo } from 'react';
 import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 
-// Memoized Path component to prevent unnecessary re-renders of all paths
-const MapPath = memo(({ d, fill, stroke, strokeWidth, isHighlighted }) => (
+const MapPath = memo(({ d, fill, stroke, strokeWidth, onClick, id }) => (
   <path
+    id={id}
     d={d}
     fill={fill}
     stroke={stroke}
     strokeWidth={strokeWidth}
     vectorEffect="non-scaling-stroke"
-    style={{ 
-        transition: 'fill 0.2s, stroke 0.2s',
-        pointerEvents: 'none'
-    }}
+    style={{ transition: 'fill 0.2s', cursor: 'pointer' }}
+    onClick={onClick}
   />
 ));
 
-const InteractiveMap = ({ highlightCode, mode, latlng }) => {
-  const [geoData, setGeoData] = useState(null);
+const InteractiveMap = ({ highlightCode, mode, latlng, onZoneClick }) => {
+  const [projectedFeatures, setProjectedFeatures] = useState([]);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const svgRef = useRef(null);
 
-  const handleMouseDown = (e) => {
-    if (zoom > 1) {
-      setIsDragging(true);
-      setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
-    }
-  };
+  const normalizeStr = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[-\s]/g, "");
 
-  const handleMouseMove = (e) => {
-    if (isDragging) {
-      // Use requestAnimationFrame for smoother dragging performance
-      window.requestAnimationFrame(() => {
-          setOffset({
-            x: e.clientX - dragStart.x,
-            y: e.clientY - dragStart.y
-          });
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
+  const project = (coords, currentMode) => {
+    if (!coords) return [0, 0];
+    if (currentMode === 'france') return [(coords[0] + 5.2) * 48, (51.8 - coords[1]) * 68];
+    if (currentMode === 'usa') return [(coords[0] + 128) * 7, (49 - coords[1]) * 12];
+    if (currentMode === 'south_korea') return [(coords[0] - 124) * 60 + 10, (39 - coords[1]) * 85 + 20];
+    return [(coords[0] + 180) * (800 / 360), (90 - coords[1]) * (450 / 180)];
   };
 
   useEffect(() => {
     let url = '';
-    if (mode === 'france') {
-      url = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-version-simplifiee.geojson';
-    } else if (mode === 'usa') {
-      url = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
-    } else if (mode === 'south_korea') {
-      url = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_provinces_geo.json';
-    } else if (mode === 'cameroon') {
-      url = 'https://code.highcharts.com/mapdata/countries/cm/cm-all.geo.json';
-    } else {
-      url = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson';
-    }
+    if (mode === 'france') url = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-version-simplifiee.geojson';
+    else if (mode === 'usa') url = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
+    else if (mode === 'south_korea') url = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_provinces_geo.json';
+    else url = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson';
     
     fetch(url)
       .then(res => res.json())
       .then(data => {
+          let features = data.features;
           if (mode === 'south_korea') {
-              const dokdo = {
+              features = [...features, {
                   type: "Feature",
-                  properties: { name: "독도", name_eng: "Dokdo", name_full: "독도", code: "경상북도" },
-                  geometry: {
-                      type: "MultiPolygon",
-                      coordinates: [[[[131.8, 37.3], [131.9, 37.3], [131.9, 37.2], [131.8, 37.2], [131.8, 37.3]]]]
-                  }
-              };
-              data.features.push(dokdo);
-              data.features.sort((a, b) => {
-                  const nameA = a.properties.name || "";
-                  const nameB = b.properties.name || "";
-                  const isCityA = nameA.includes('시') || nameA.includes('특별시') || nameA.includes('광역시');
-                  const isCityB = nameB.includes('시') || nameB.includes('특별시') || nameB.includes('광역시');
-                  if (isCityA && !isCityB) return 1;
-                  if (!isCityA && isCityB) return -1;
-                  return 0;
-              });
+                  properties: { name: "Dokdo", name_eng: "Dokdo", name_full: "독도", code: "dokdo" },
+                  geometry: { type: "MultiPolygon", coordinates: [[[[131.85, 37.30], [132.05, 37.30], [132.05, 37.15], [131.85, 37.15], [131.85, 37.30]]]] }
+              }];
           }
-          setGeoData(data);
+
+          // [초저지연 최적화] 모든 경로와 줌 데이터를 로드 시 1회 계산하여 메모리에 저장
+          const processed = features.map(f => {
+              let d = "";
+              let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+              
+              const updateBBox = (c) => {
+                  const [px, py] = project(c, mode);
+                  minX = Math.min(minX, px); maxX = Math.max(maxX, px);
+                  minY = Math.min(minY, py); maxY = Math.max(maxY, py);
+                  return `${px},${py}`;
+              };
+
+              if (f.geometry.type === 'Polygon') {
+                  d = `M ${f.geometry.coordinates[0].map(updateBBox).join(' L ')} Z`;
+              } else {
+                  d = f.geometry.coordinates.map(poly => `M ${poly[0].map(updateBBox).join(' L ')} Z`).join(' ');
+              }
+
+              return { 
+                  ...f, 
+                  projectedPath: d, 
+                  bbox: { x: minX, y: minY, w: maxX - minX, h: maxY - minY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 }
+              };
+          });
+          setProjectedFeatures(processed);
       })
-      .catch(e => console.error("Erreur chargement carte", e));
+      .catch(e => console.error("Error", e));
   }, [mode]);
 
   useEffect(() => {
-    if (highlightCode && geoData && svgRef.current) {
-      setTimeout(() => {
-        const hNorm = highlightCode.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[-\s]/g, "");
+    if (highlightCode && projectedFeatures.length > 0) {
+      const hNorm = normalizeStr(highlightCode);
+      const isLocalMode = mode === 'france' || mode === 'south_korea';
+      
+      const feature = projectedFeatures.find(f => {
+          const p = f.properties;
+          return [p.code, p.ISO, p.ISO_A3, p.cca3].some(c => c && c.toLowerCase() === highlightCode.toLowerCase()) ||
+                 [p.name, p.NAME, p.NAME_1, p.name_eng, p.NL_NAME_1].some(n => n && normalizeStr(n) === hNorm);
+      });
+
+      if (feature && !isLocalMode) {
+        const viewWidth = mode === 'usa' ? 600 : 800;
+        const viewHeight = mode === 'usa' ? 350 : 450;
+        const { cx, cy, w, h } = feature.bbox;
         
-        const element = Array.from(svgRef.current.querySelectorAll('path')).find(path => {
-            const featureIdx = path.id?.split('-')[1];
-            if (featureIdx === undefined || !geoData.features[featureIdx]) return false;
-            const props = geoData.features[featureIdx].properties;
-            const name = (props.name || props.NAME || props.NAME_1 || props.NAME_ENG || props.name_eng || props.name_2 || props.shapeName || props.SHAPENAME || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[-\s]/g, "");
-            return name === hNorm || props.code === highlightCode || props.ISO === highlightCode || props.ISO_A3 === highlightCode || props.cca3 === highlightCode || props.NAME_1 === highlightCode || props.name_eng === highlightCode;
-        });
-
-        const viewWidth = (mode === 'france' || mode === 'south_korea' || mode === 'cameroon') ? 600 : mode === 'usa' ? 600 : 800;
-        const viewHeight = (mode === 'france' || mode === 'south_korea' || mode === 'cameroon') ? 600 : mode === 'usa' ? 350 : 450;
-
-        if (element) {
-          const bbox = element.getBBox();
-          const centerX = bbox.x + bbox.width / 2;
-          const centerY = bbox.y + bbox.height / 2;
-          
-          const isSmall = bbox.width < 30 && bbox.height < 30;
-          const scale = isSmall ? 15 : Math.min(25, Math.max(2, 400 / Math.max(bbox.width, bbox.height)));
-          
-          setZoom(scale);
-          setOffset({
-            x: (viewWidth / 2) - centerX * scale,
-            y: (viewHeight / 2) - centerY * scale
-          });
-        } else if (latlng) {
-            const [lat, lng] = latlng;
-            const [projX, projY] = project([lng, lat]);
-            setZoom(15);
-            setOffset({
-                x: (viewWidth / 2) - projX * 15,
-                y: (viewHeight / 2) - projY * 15
-            });
-        }
-      }, 100);
-    } else if (!highlightCode) {
-      resetZoom();
-    }
-  }, [highlightCode, geoData, mode, latlng]);
-
-  const resetZoom = () => {
-    setZoom(1);
-    setOffset({ x: 0, y: 0 });
-  };
-
-  const project = (coords) => {
-    if (mode === 'france') return [(coords[0] + 5) * 40, (52 - coords[1]) * 60];
-    if (mode === 'usa') return [(coords[0] + 130) * 6, (50 - coords[1]) * 8];
-    if (mode === 'south_korea') return [(coords[0] - 124) * 65, (39.5 - coords[1]) * 90];
-    if (mode === 'cameroon') {
-        if (coords[0] > 180) return [(coords[0] - 2800) * 0.15, (3800 - coords[1]) * 0.12];
-        return [(coords[0] - 8) * 60, (14 - coords[1]) * 45];
-    }
-    return [(coords[0] + 180) * (800 / 360), (90 - coords[1]) * (450 / 180)];
-  };
-
-  const viewBox = (mode === 'france' || mode === 'south_korea' || mode === 'cameroon') ? "0 0 600 600" : mode === 'usa' ? "0 0 600 350" : "0 0 800 450";
-
-  const indicatorPos = useMemo(() => {
-      if (!highlightCode || !geoData) return null;
-      const isWorldMode = mode === 'flags' || mode === 'capitals' || mode === 'islands';
-      if (isWorldMode && latlng) {
-          const [projX, projY] = project([latlng[1], latlng[0]]);
-          return { x: projX, y: projY };
+        // [미국 줌 최적화] 미국 퀴즈 배율 하향 조정 (Max 3.5)
+        const scaleLimit = mode === 'usa' ? 3.5 : 6;
+        const scale = Math.min(scaleLimit, Math.max(1.2, (viewHeight * 0.6) / Math.max(w, h)));
+        
+        setZoom(scale);
+        setOffset({ x: (viewWidth / 2) - cx * scale, y: (viewHeight / 2) - cy * scale });
+      } else {
+        setZoom(1); setOffset({ x: 0, y: 0 });
       }
-      return null;
-  }, [highlightCode, geoData, mode, latlng]);
+    } else {
+      setZoom(1); setOffset({ x: 0, y: 0 });
+    }
+  }, [highlightCode, projectedFeatures, mode]);
+
+  const viewBox = (mode === 'france' || mode === 'south_korea') ? "0 0 600 600" : mode === 'usa' ? "0 0 600 350" : "0 0 800 450";
 
   const renderedPaths = useMemo(() => {
-      if (!geoData) return null;
-      return geoData.features.map((feature, i) => {
-          const props = feature.properties;
-          const name = props.name || props.NAME || props.NAME_1 || props.NAME_ENG || props.name_eng || props.name_2 || props.shapeName || props.SHAPENAME || "";
-          const hNorm = (highlightCode || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[-\s]/g, "");
-          const pNorm = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[-\s]/g, "");
-          
-          const isHighlighted = highlightCode && (
-            pNorm === hNorm || 
-            props.code === highlightCode || 
-            props.ISO === highlightCode ||
-            props.ISO_A3 === highlightCode ||
-            props.cca3 === highlightCode ||
-            props.NAME_1 === highlightCode ||
-            props.name_eng === highlightCode
-          );
+    const hNorm = normalizeStr(highlightCode);
+    return projectedFeatures.map((f, i) => {
+      const p = f.properties;
+      const isHighlighted = highlightCode && (
+          [p.code, p.ISO, p.ISO_A3, p.cca3].some(c => c && c.toLowerCase() === highlightCode.toLowerCase()) ||
+          [p.name, p.NAME, p.NAME_1, p.name_eng, p.NL_NAME_1].some(n => n && normalizeStr(n) === hNorm) ||
+          (p.code === 'dokdo' && highlightCode === '경상북도')
+      );
 
-          return (
-            <path
-              key={`${mode}-${i}`}
-              id={`path-${i}`}
-              d={renderPath(feature.geometry, project)}
-              fill={isHighlighted ? 'var(--primary)' : 'var(--map-base)'}
-              stroke={isHighlighted ? "#fff" : "var(--map-stroke)"}
-              strokeWidth={isHighlighted ? 1.5 : 0.3}
-              vectorEffect="non-scaling-stroke"
-              style={{ pointerEvents: 'none' }}
-            />
-          );
-      });
-  }, [geoData, highlightCode, mode]);
-
-  if (!geoData) return <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-light)' }}>🌍 Chargement de la carte...</div>;
+      return (
+        <MapPath
+          key={`${mode}-${i}`}
+          d={f.projectedPath}
+          fill={isHighlighted ? 'var(--primary)' : '#e2e8f0'}
+          stroke="#1e293b"
+          strokeWidth={isHighlighted ? 2 : 1}
+          onClick={() => onZoneClick && onZoneClick(p)}
+        />
+      );
+    });
+  }, [projectedFeatures, highlightCode, mode]);
 
   return (
-    <div style={{ position: 'relative', background: 'var(--bg-app)', borderRadius: '16px', overflow: 'hidden', border: '2px solid var(--border)' }}>
-      <style>{`
-        @keyframes pulse-ring {
-          0% { transform: scale(0.5); opacity: 0.8; }
-          100% { transform: scale(2.5); opacity: 0; }
-        }
-        .indicator-ring {
-          animation: pulse-ring 2s infinite;
-        }
-      `}</style>
-      <div style={{ position: 'absolute', top: '15px', right: '15px', display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 10 }}>
-        <button onClick={() => setZoom(z => Math.min(z + 0.5, 30))} className="btn" style={{ padding: '8px', background: 'var(--bg-card)' }}><ZoomIn size={18} /></button>
-        <button onClick={() => setZoom(z => Math.max(z - 0.5, 1))} className="btn" style={{ padding: '8px', background: 'var(--bg-card)' }}><ZoomOut size={18} /></button>
-        <button onClick={resetZoom} className="btn" style={{ padding: '8px', background: 'var(--bg-card)' }}><Maximize size={18} /></button>
-      </div>
-
-      <svg 
+    <div className="w-full h-full bg-blue-50 rounded-xl overflow-hidden shadow-inner relative">
+      <svg
         ref={svgRef}
-        viewBox={viewBox} 
-        style={{ width: '100%', height: '400px', cursor: isDragging ? 'grabbing' : zoom > 1 ? 'grab' : 'default', touchAction: 'none' }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        viewBox={viewBox}
+        className="w-full h-full touch-none"
+        onMouseDown={(e) => { if(zoom > 1) { setIsDragging(true); setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y }); }}}
+        onMouseMove={(e) => { if(isDragging) setOffset({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y }); }}
+        onMouseUp={() => setIsDragging(false)}
+        onMouseLeave={() => setIsDragging(false)}
       >
-        <g transform={`translate(${offset.x}, ${offset.y}) scale(${zoom})`} style={{ transition: isDragging ? 'none' : 'transform 0.3s ease-out', willChange: 'transform' }}>
+        <g transform={`translate(${offset.x}, ${offset.y}) scale(${zoom})`}>
           {renderedPaths}
-          
-          {indicatorPos && (
-              <g transform={`translate(${indicatorPos.x}, ${indicatorPos.y})`}>
-                  <circle r={10 / zoom} className="indicator-ring" fill="var(--primary)" />
-                  <circle r={4 / zoom} fill="var(--primary)" stroke="#fff" strokeWidth={1 / zoom} />
+          {highlightCode && latlng && (mode === 'islands' || (mode !== 'france' && mode !== 'south_korea' && mode !== 'usa')) && (
+              <g className="pointer-events-none">
+                  {(() => {
+                      const [lat, lng] = latlng;
+                      const [px, py] = project([lng, lat], mode);
+                      return (
+                          <>
+                            <circle cx={px} cy={py} r={3 / zoom} fill="red" stroke="white" strokeWidth={1 / zoom} />
+                            <circle cx={px} cy={py} r={6 / zoom} fill="rgba(255,0,0,0.3)" className="animate-ping" />
+                          </>
+                      );
+                  })()}
               </g>
           )}
         </g>
       </svg>
+      <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+        <button onClick={() => setZoom(z => Math.min(z * 1.2, 10))} className="btn-icon bg-white/80 p-2 rounded-full shadow hover:bg-white"><ZoomIn size={20} /></button>
+        <button onClick={() => setZoom(z => Math.max(z / 1.2, 0.5))} className="btn-icon bg-white/80 p-2 rounded-full shadow hover:bg-white"><ZoomOut size={20} /></button>
+        <button onClick={() => { setZoom(1); setOffset({ x: 0, y: 0 }); }} className="btn-icon bg-white/80 p-2 rounded-full shadow hover:bg-white"><Maximize size={20} /></button>
+      </div>
     </div>
   );
-};
-
-const renderPath = (geometry, project) => {
-  if (!geometry) return "";
-  const renderPolygon = (coords) => {
-    if (!coords || coords.length === 0) return "";
-    const points = Array.isArray(coords[0][0]) ? coords[0] : coords;
-    // Round coordinates to 1 decimal place to reduce SVG path string size and improve performance
-    return "M" + points.map(c => project(c).map(v => Math.round(v * 10) / 10).join(",")).join("L") + "Z";
-  };
-  if (geometry.type === "Polygon") return renderPolygon(geometry.coordinates);
-  if (geometry.type === "MultiPolygon") return geometry.coordinates.map(poly => renderPolygon(poly)).join(" ");
-  return "";
 };
 
 export default InteractiveMap;
