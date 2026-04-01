@@ -20,7 +20,6 @@ export const translations = {
       france: "Départements FR",
       usa: "États USA",
       south_korea: "Provinces Corée",
-      cameroon: "Régions Cameroun",
       culture: "Culture Géo"
     },
     ui: {
@@ -61,7 +60,7 @@ export const translations = {
       s1_resp: "Responsable de la publication :",
       s1_contact: "Contactable via le formulaire de feedback intégré au site.",
       s2_title: "2. Hébergement",
-      s2_text: "Le site est hébergé par les services de GitHub Inc. (GitHub Pages) ou plateforme équivalente de déploiement statique.",
+      s2_text: "Le site est hébergé par les services de GitHub Inc. (GitHub Pages) ou plateforme équivalente de déployement statique.",
       s2_address: "Siège social de l'hébergeur : 88 Colin P Kelly Jr St, San Francisco, CA 94107, États-Unis.",
       s3_title: "3. Propriété intellectuelle et contrefaçons",
       s3_text: "c0bb est propriétaire des droits de propriété intellectuelle ou détient les droits d’usage sur tous les éléments accessibles sur le site, notamment les textes, images, graphismes, logo, icônes, sons, logiciels.",
@@ -79,7 +78,6 @@ export const translations = {
       france: "Quelle est la préfecture du département {name} ({code}) ?",
       usa: "Quelle est la capitale de l'État : {name} ?",
       south_korea: "Quelle est cette province de Corée du Sud ?",
-      cameroon: "Quelle est cette région du Cameroun ?",
       culture: "{q}"
     }
   },
@@ -104,7 +102,6 @@ export const translations = {
       france: "FR Departments",
       usa: "USA States",
       south_korea: "Korea Provinces",
-      cameroon: "Cameroon Regions",
       culture: "Geo Culture"
     },
     ui: {
@@ -115,12 +112,12 @@ export const translations = {
       correct: "✓ Correct!",
       almost: "⚠ Almost! The correct answer is:",
       wrong: "✗ Incorrect. The answer was:",
-      belongsTo: "Territory of: {country}",
+      belongsTo: "Territoire de : {country}",
       displayMode: "Display Mode",
       modeClassic: "Classic (One by One)",
       modeNoMap: "Blind (No Map)",
       modeMapOnly: "Cartographer (Map Only)",
-      modeMarathon: "Marathon (Full Grid)",
+      modeMarathon: "Mode Marathon",
       time: "Time",
       leaderboard: "Leaderboard",
       lbAll: "All-Time",
@@ -163,7 +160,6 @@ export const translations = {
       france: "What is the prefecture of {name} ({code})?",
       usa: "What is the capital of the state of {name}?",
       south_korea: "Which South Korean province is this?",
-      cameroon: "Which Cameroon region is this?",
       culture: "{q}"
     }
   },
@@ -188,7 +184,6 @@ export const translations = {
       france: "프랑스 행정구역",
       usa: "미국 주",
       south_korea: "한국 행정구역",
-      cameroon: "카메룬 행정구역",
       culture: "지리 상식"
     },
     ui: {
@@ -204,7 +199,7 @@ export const translations = {
       modeClassic: "기본 (하나씩)",
       modeNoMap: "지도 숨김",
       modeMapOnly: "지도 전용",
-      modeMarathon: "마라톤 (전체 그리드)",
+      modeMarathon: "모드 마라톤",
       time: "시간",
       leaderboard: "순위표",
       lbAll: "전체",
@@ -247,7 +242,6 @@ export const translations = {
       france: "{name} ({code}) 성의 주도는 어디입니까?",
       usa: "{name} 주의 주도는 어디인가요?",
       south_korea: "이 한국의 도/광역시는 어디입니까?",
-      cameroon: "이 카메룬의 주는 어디입니까?",
       culture: "{q}"
     }
   }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import stringSimilarity from 'string-similarity';
-import { frenchDepartments, usStates, geoCulture, southKoreaProvinces, cameroonRegions } from '../data/geographyData';
+import { frenchDepartments, usStates, geoCulture, southKoreaProvinces } from '../data/geographyData';
 import { translations } from '../data/translations';
 import { koreanCapitals, koreanStates, koreanDepartments } from '../data/koreanData';
 import { frenchCapitals } from '../data/frenchCapitals';
@@ -26,7 +26,7 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
   const t = translations[lang];
   const isMarathon = displayMode === 'marathon' && isFull && isTyping;
   const isCulture = mode === 'culture';
-  const isMapRequirement = mode === 'south_korea' || mode === 'cameroon';
+  const isMapRequirement = mode === 'south_korea';
 
   useEffect(() => {
     fetchData();
@@ -67,7 +67,6 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
       } else if (mode === 'france') data = frenchDepartments;
       else if (mode === 'usa') data = usStates;
       else if (mode === 'south_korea') data = southKoreaProvinces;
-      else if (mode === 'cameroon') data = cameroonRegions;
       else if (mode === 'culture') data = geoCulture;
 
       if (data.length === 0) throw new Error("Aucune donnée disponible");
@@ -166,9 +165,9 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
         answer = capital;
         choices = [answer, ...usStates.filter(d => d.capital !== item.capital).sort(() => 0.5 - Math.random()).slice(0, 3).map(d => getTranslatedState(d.capital, lang === 'kor'))];
         code = item.name;
-      } else if (mode === 'south_korea' || mode === 'cameroon') {
+      } else if (mode === 'south_korea') {
         const name = getTranslatedState(item.name, false);
-        const template = mode === 'south_korea' ? t.templates.south_korea : t.templates.cameroon;
+        const template = t.templates.south_korea;
         question = { type: 'text', text: template };
         answer = name;
         choices = [answer, ...data.filter(d => d.name !== item.name).sort(() => 0.5 - Math.random()).slice(0, 3).map(d => getTranslatedState(d.name, false))];
