@@ -26,7 +26,7 @@ const InteractiveMap = ({ highlightCode, mode, latlng, onZoneClick }) => {
 
   const project = (coords, currentMode) => {
     if (!coords) return [0, 0];
-    if (currentMode === 'france') return [(coords[0] + 5.2) * 48, (51.8 - coords[1]) * 68];
+    if (currentMode === 'france') return [(coords[0] + 5) * 38 + 25, (51.2 - coords[1]) * 55 + 20];
     if (currentMode === 'usa') return [(coords[0] + 128) * 7, (49 - coords[1]) * 12];
     if (currentMode === 'south_korea') return [(coords[0] - 124) * 60 + 10, (39 - coords[1]) * 85 + 20];
     return [(coords[0] + 180) * (800 / 360), (90 - coords[1]) * (450 / 180)];
@@ -58,15 +58,20 @@ const InteractiveMap = ({ highlightCode, mode, latlng, onZoneClick }) => {
               
               const updateBBox = (c) => {
                   const [px, py] = project(c, mode);
-                  minX = Math.min(minX, px); maxX = Math.max(maxX, px);
-                  minY = Math.min(minY, py); maxY = Math.max(maxY, py);
-                  return `${px},${py}`;
+                  if (px < minX) minX = px; if (px > maxX) maxX = px;
+                  if (py < minY) minY = py; if (py > maxY) maxY = py;
+                  return `${Math.round(px*10)/10},${Math.round(py*10)/10}`;
               };
 
               if (f.geometry.type === 'Polygon') {
-                  d = `M ${f.geometry.coordinates[0].map(updateBBox).join(' L ')} Z`;
+                  // Simplification légère des coordonnées pour la Corée uniquement si la forme est complexe
+                  const coords = (mode === 'south_korea' && f.geometry.coordinates[0].length > 20) ? f.geometry.coordinates[0].filter((_, i) => i % 2 === 0) : f.geometry.coordinates[0];
+                  d = `M ${coords.map(updateBBox).join(' L ')} Z`;
               } else {
-                  d = f.geometry.coordinates.map(poly => `M ${poly[0].map(updateBBox).join(' L ')} Z`).join(' ');
+                  d = f.geometry.coordinates.map(poly => {
+                      const coords = (mode === 'south_korea' && poly[0].length > 20) ? poly[0].filter((_, i) => i % 2 === 0) : poly[0];
+                      return `M ${coords.map(updateBBox).join(' L ')} Z`;
+                  }).join(' ');
               }
 
               return { 
@@ -87,28 +92,46 @@ const InteractiveMap = ({ highlightCode, mode, latlng, onZoneClick }) => {
       
       const feature = projectedFeatures.find(f => {
           const p = f.properties;
-          return [p.code, p.ISO, p.ISO_A3, p.cca3].some(c => c && c.toLowerCase() === highlightCode.toLowerCase()) ||
-                 [p.name, p.NAME, p.NAME_1, p.name_eng, p.NL_NAME_1].some(n => n && normalizeStr(n) === hNorm);
+          return [p.code, p.ISO, p.ISO_A3, p.ISO_A3_EH, p.ADM0_A3, p.SOV_A3, p.cca3].some(c => c && String(c).toLowerCase() === highlightCode.toLowerCase()) ||
+                 [p.name, p.NAME, p.NAME_1, p.name_eng, p.NL_NAME_1, p.NAME_FR, p.NAME_EN].some(n => n && normalizeStr(n) === hNorm);
       });
 
       if (feature && !isLocalMode) {
         const viewWidth = mode === 'usa' ? 600 : 800;
         const viewHeight = mode === 'usa' ? 350 : 450;
-        const { cx, cy, w, h } = feature.bbox;
+        let { cx, cy, w, h } = feature.bbox;
         
-        // [미국 줌 최적화] 미국 퀴즈 배율 하향 조정 (Max 3.5)
-        const scaleLimit = mode === 'usa' ? 3.5 : 6;
-        const scale = Math.min(scaleLimit, Math.max(1.2, (viewHeight * 0.6) / Math.max(w, h)));
+        // [Optimisation Kiribati/Antiméridien/NZ] Si le bbox est anormalement large, utiliser latlng
+        if (w > viewWidth * 0.6 && latlng) {
+            const [lat, lng] = latlng;
+            const [px, py] = project([lng, lat], mode);
+            cx = px; cy = py;
+            w = 20; h = 20; // Forcer un zoom serré sur le point
+        }
+
+        // [미국 줌 최적화] 미국 퀴즈 배율 대폭 하향 (Max 2.0) pour dézoomer
+        const scaleLimit = mode === 'usa' ? 2.0 : 8;
+        const scale = Math.min(scaleLimit, Math.max(1.1, (viewHeight * 0.7) / Math.max(w, h)));
         
         setZoom(scale);
         setOffset({ x: (viewWidth / 2) - cx * scale, y: (viewHeight / 2) - cy * scale });
-      } else {
+      } else if (!isLocalMode && latlng) {
+        // [Fallback] Si le pays n'est pas trouvé par son polygone mais qu'on a des coordonnées
+        const viewWidth = 800;
+        const viewHeight = 450;
+        const [lat, lng] = latlng;
+        const [px, py] = project([lng, lat], mode);
+        const scale = 5;
+        setZoom(scale);
+        setOffset({ x: (viewWidth / 2) - px * scale, y: (viewHeight / 2) - py * scale });
+        } else {
+
         setZoom(1); setOffset({ x: 0, y: 0 });
       }
     } else {
       setZoom(1); setOffset({ x: 0, y: 0 });
     }
-  }, [highlightCode, projectedFeatures, mode]);
+  }, [highlightCode, projectedFeatures, mode, latlng]);
 
   const viewBox = (mode === 'france' || mode === 'south_korea') ? "0 0 600 600" : mode === 'usa' ? "0 0 600 350" : "0 0 800 450";
 
@@ -117,8 +140,8 @@ const InteractiveMap = ({ highlightCode, mode, latlng, onZoneClick }) => {
     return projectedFeatures.map((f, i) => {
       const p = f.properties;
       const isHighlighted = highlightCode && (
-          [p.code, p.ISO, p.ISO_A3, p.cca3].some(c => c && c.toLowerCase() === highlightCode.toLowerCase()) ||
-          [p.name, p.NAME, p.NAME_1, p.name_eng, p.NL_NAME_1].some(n => n && normalizeStr(n) === hNorm) ||
+          [p.code, p.ISO, p.ISO_A3, p.ISO_A3_EH, p.ADM0_A3, p.SOV_A3, p.cca3].some(c => c && String(c).toLowerCase() === highlightCode.toLowerCase()) ||
+          [p.name, p.NAME, p.NAME_1, p.name_eng, p.NL_NAME_1, p.NAME_FR, p.NAME_EN].some(n => n && normalizeStr(n) === hNorm) ||
           (p.code === 'dokdo' && highlightCode === '경상북도')
       );
 

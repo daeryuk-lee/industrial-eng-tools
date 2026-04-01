@@ -60,9 +60,9 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
         const resData = await res.json();
         
         if (mode === 'islands') {
-          data = resData.filter(c => !c.independent && c.cca3 !== 'TWN');
+          data = resData.filter(c => !c.independent && c.cca3 !== 'TWN' && c.cca3 !== 'PSE');
         } else {
-          data = resData.filter(c => (c.independent || c.cca3 === 'TWN') && c.capital && c.capital.length > 0);
+          data = resData.filter(c => (c.independent || c.cca3 === 'TWN' || c.cca3 === 'PSE') && c.capital && c.capital.length > 0);
         }
       } else if (mode === 'france') data = frenchDepartments;
       else if (mode === 'usa') data = usStates;
@@ -139,7 +139,7 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
         answer = name;
         choices = [answer, ...data.filter(d => getTranslatedName(d) !== answer).sort(() => 0.5 - Math.random()).slice(0, 3).map(d => getTranslatedName(d))];
         code = item.cca3;
-        latlng = item.capitalInfo?.latlng || item.latlng;
+        latlng = item.cca3 === 'ATF' ? item.latlng : (item.capitalInfo?.latlng || item.latlng);
       } else if (mode === 'capitals') {
         const name = getTranslatedName(item);
         const capitals = getTranslatedCapitals(item);
@@ -150,7 +150,7 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
             return !dCaps.some(c => capitals.includes(c));
         }).sort(() => 0.5 - Math.random()).slice(0, 3).map(d => getTranslatedCapitals(d)[0])];
         code = item.cca3;
-        latlng = item.capitalInfo?.latlng || item.latlng;
+        latlng = item.cca3 === 'ATF' ? item.latlng : (item.capitalInfo?.latlng || item.latlng);
       } else if (mode === 'france') {
         const name = getTranslatedDept(item.name, lang === 'kor');
         const prefecture = getTranslatedDept(item.prefecture, lang === 'kor');
@@ -202,11 +202,12 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
     let n = str.trim().toLowerCase();
     n = n.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     // Supprimer les articles au début
-    n = n.replace(/^(le\s+|la\s+|les\s+|l'|the\s+|a\s+|an\s+|de\s+|des\s+|du\s+)/g, "");
+    n = n.replace(/^(le\s+|la\s+|les\s+|l'|the\s+|a\s+|an\s+|de\s+|des\s+|du\s+|el\s+)/g, "");
     // Supprimer ponctuation, tirets et espaces
     n = n.replace(/[-\s\.\,\(\)\']/g, "");
     // Cas particuliers
     if (n === "vatican" || n === "citevatican") return "vatican";
+    if (n === "salvador") return "elsalvador"; // Normalisation commune pour El Salvador
     return n;
   };
 
@@ -223,7 +224,8 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
             if (foundItems.includes(Array.isArray(q.answer) ? q.answer[0] : q.answer)) return false;
             const qAs = Array.isArray(q.answer) ? q.answer : [q.answer];
             const normalizedQAs = qAs.map(a => normalize(a));
-            return normalizedQAs.some(a => a === normalizedInput || (normalizedInput.length > 3 && a.includes(normalizedInput)));
+            // [Marathon] Exiger l'égalité exacte (après normalisation) pour éviter les faux positifs (ex: "France" matchant "Île-de-France")
+            return normalizedQAs.some(a => a === normalizedInput);
         });
         
         if (targetQIdx !== -1) {
