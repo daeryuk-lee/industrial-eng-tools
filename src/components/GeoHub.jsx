@@ -72,6 +72,8 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCoun
     const fetchLeaderboard = async () => {
         const recordKey = `geomaster_leaderboard`;
         const localRecords = JSON.parse(localStorage.getItem(recordKey) || '[]');
+        
+        // On commence par afficher le local pour que ce soit instantané
         setLeaderboard(localRecords);
 
         if (!supabase) return;
@@ -84,7 +86,22 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCoun
                 .order('time', { ascending: true })
                 .limit(500);
             
-            if (data) setLeaderboard(data);
+            if (data) {
+                // FUSION : On combine le local et le distant en évitant les doublons
+                // (On utilise une clé unique basée sur nom + score + temps + date)
+                const combined = [...localRecords];
+                data.forEach(remote => {
+                    const isDuplicate = localRecords.some(local => 
+                        local.name === remote.name && 
+                        local.score === remote.score && 
+                        local.time === remote.time
+                    );
+                    if (!isDuplicate) combined.push(remote);
+                });
+
+                combined.sort((a, b) => b.score !== a.score ? b.score - a.score : a.time - b.time);
+                setLeaderboard(combined);
+            }
             if (error) throw error;
         } catch (err) {
             console.error("Erreur de récupération Supabase:", err);
@@ -92,7 +109,7 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCoun
     };
 
     fetchLeaderboard();
-  }, [isModalOpen]);
+  }, []); // [] pour s'exécuter une fois au montage du composant
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);

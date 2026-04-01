@@ -310,7 +310,6 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
     localStorage.setItem(recordKey, JSON.stringify(existing.slice(0, 500)));
 
     // Sauvegarde en ligne (Supabase)
-    const { supabase } = await import('../supabase');
     if (supabase) {
         try {
             const { error } = await supabase
@@ -464,6 +463,12 @@ const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode 
         )}
       </div>
       <button className="btn" style={{ marginTop: '2rem', background: 'transparent', color: 'var(--text-light)' }} onClick={onBack}>← {t.back}</button>
+    </div>
+  );
+};
+
+export default QuizEngine;
+ht)' }} onClick={onBack}>← {t.back}</button>
     </div>
   );
 };
