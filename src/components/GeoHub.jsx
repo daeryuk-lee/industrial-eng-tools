@@ -74,6 +74,8 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCoun
         const localRecords = JSON.parse(localStorage.getItem(recordKey) || '[]');
         setLeaderboard(localRecords);
 
+        if (!supabase) return;
+
         try {
             const { data, error } = await supabase
                 .from('leaderboard')
