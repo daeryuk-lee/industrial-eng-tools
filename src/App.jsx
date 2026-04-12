@@ -4,6 +4,8 @@ import GeoHub from './components/GeoHub';
 
 const QuizEngine = lazy(() => import('./components/QuizEngine'));
 const Legal = lazy(() => import('./components/Legal'));
+const About = lazy(() => import('./components/About'));
+const Privacy = lazy(() => import('./components/Privacy'));
 const UserStats = lazy(() => import('./components/UserStats'));
 
 const Loading = () => <div className="loading-container">Chargement...</div>;
@@ -45,6 +47,8 @@ function App() {
               setDisplayMode={setDisplayMode}
               onSelectMode={(id) => navigate(`/quiz/${id}`)} 
               onShowLegal={() => navigate('/legal')}
+              onShowAbout={() => navigate('/about')}
+              onShowPrivacy={() => navigate('/privacy')}
               onShowStats={() => navigate('/stats')}
               theme={theme}
               toggleTheme={toggleTheme}
@@ -64,6 +68,14 @@ function App() {
 
           <Route path="/legal" element={
             <Legal lang={lang} onBack={() => navigate('/')} />
+          } />
+          
+          <Route path="/about" element={
+            <About lang={lang} onBack={() => navigate('/')} />
+          } />
+          
+          <Route path="/privacy" element={
+            <Privacy lang={lang} onBack={() => navigate('/')} />
           } />
 
           <Route path="/stats" element={

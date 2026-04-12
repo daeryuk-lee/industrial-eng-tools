@@ -47,7 +47,7 @@ const CustomSelect = ({ label, value, options, onChange }) => {
   );
 };
 
-const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCount, setQCount, onSelectMode, displayMode, setDisplayMode, onShowLegal, onShowStats, theme, toggleTheme }) => {
+const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCount, setQCount, onSelectMode, displayMode, setDisplayMode, onShowLegal, onShowAbout, onShowPrivacy, onShowStats, theme, toggleTheme }) => {
   const t = translations[lang];
   const [leaderboard, setLeaderboard] = useState([]);
   const [lbTab, setLbTab] = useState('permanent');
@@ -337,10 +337,14 @@ const GeoHub = ({ lang, setLang, isFull, setIsFull, isTyping, setIsTyping, qCoun
 
       <footer style={{ marginTop: '6rem', textAlign: 'center', padding: '4rem 0', borderTop: '2px solid var(--border)' }}>
         <p style={{ color: 'var(--text-light)', fontSize: '1.1rem', marginBottom: '1rem', fontWeight: '600' }}>{t.ui.credits}</p>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem', fontSize: '1rem', alignItems: 'center' }}>
-            <button onClick={onShowLegal} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: '900', fontSize: '1rem' }}>{t.ui.legal}</button>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', fontSize: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button onClick={onShowAbout} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: '900', fontSize: '1rem' }}>{t.ui.about}</button>
             <span style={{ color: 'var(--border)', fontSize: '1.5rem' }}>|</span>
-            <span style={{ color: 'var(--text-light)', fontWeight: '800' }}>GeoMaster v2.5 Premium</span>
+            <button onClick={onShowPrivacy} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: '900', fontSize: '1rem' }}>{t.ui.privacy}</button>
+            <span style={{ color: 'var(--border)', fontSize: '1.5rem' }}>|</span>
+            <button onClick={onShowLegal} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: '900', fontSize: '1rem' }}>{t.ui.legal}</button>
+            <span style={{ color: 'var(--border)', fontSize: '1.5rem', display: 'none' }}>|</span>
+            <span style={{ color: 'var(--text-light)', fontWeight: '800', marginLeft: '1rem' }}>GeoMaster v2.5 Premium</span>
         </div>
       </footer>
     </div>
