@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import stringSimilarity from 'string-similarity';
 import { frenchDepartments, usStates, geoCulture, southKoreaProvinces } from '../data/geographyData';
 import { translations } from '../data/translations';
@@ -7,7 +8,8 @@ import { frenchCapitals } from '../data/frenchCapitals';
 import InteractiveMap from './InteractiveMap';
 import { supabase } from '../supabase';
 
-const QuizEngine = ({ mode, lang, isFull, isTyping, qCount, onBack, displayMode }) => {
+const QuizEngine = ({ lang, isFull, isTyping, qCount, onBack, displayMode }) => {
+  const { mode } = useParams();
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
