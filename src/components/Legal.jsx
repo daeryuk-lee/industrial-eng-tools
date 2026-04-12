@@ -16,9 +16,9 @@ const Legal = ({ lang, onBack }) => {
           <h2 style={{ fontSize: '1.6rem', color: 'var(--text-dark)', marginBottom: '1rem', fontWeight: '800' }}>{l.s1_title}</h2>
           <p>{l.s1_text}</p>
           <p style={{ marginTop: '1rem' }}>
-            <strong>{l.s1_owner}</strong> c0bb237<br />
-            <strong>{l.s1_tech}</strong> c0bb237 & Gemini CLI (Intelligence Artificielle)<br />
-            <strong>{l.s1_resp}</strong> c0bb237 - {l.s1_contact}
+            <strong>{l.s1_owner}</strong> {lang === 'kor' ? '이대륙' : 'Daeryuk LEE'}<br />
+            <strong>{l.s1_tech}</strong> {lang === 'kor' ? '이대륙' : 'Daeryuk LEE'} & Gemini CLI (Intelligence Artificielle)<br />
+            <strong>{l.s1_resp}</strong> {lang === 'kor' ? '이대륙' : 'Daeryuk LEE'} - {l.s1_contact}
           </p>
         </section>
 

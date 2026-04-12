@@ -267,7 +267,7 @@ export const translations = {
       feedback: "피드백",
       feedbackPlaceholder: "아이디어나 버그를 제보해주세요...",
       send: "보내기",
-      credits: "© 2026 GeoMaster - c0bb 및 Gemini CLI 제작. 판권 소유."
+      credits: "© 2026 GeoMaster - 이대륙 및 Gemini CLI 제작. 판권 소유."
     },
     legal: {
       s1_title: "1. 웹사이트 에디션",
@@ -280,13 +280,13 @@ export const translations = {
       s2_text: "이 사이트는 GitHub Inc. (GitHub Pages) 또는 이와 동등한 정적 배포 플랫폼에서 호스팅됩니다.",
       s2_address: "호스팅 본사: 88 Colin P Kelly Jr St, San Francisco, CA 94107, USA.",
       s3_title: "3. 지적 재산권 및 위조",
-      s3_text: "c0bb은 텍스트, 이미지, 그래픽, 로고, 아이콘, 소리, 소프트웨어를 포함하여 사이트에서 액세스할 수 있는 모든 요소에 대한 지적 재산권을 소유하거나 사용권을 보유합니다.",
-      s3_warn: "c0bb의 사전 서면 허가 없이는 사용된 수단이나 프로세스에 관계없이 사이트 요소의 전부 또는 일부를 복제, 표현, 수정, 게시, 개작하는 것을 금지합니다.",
+      s3_text: "이대륙은 텍스트, 이미지, 그래픽, 로고, 아이콘, 소리, 소프트웨어를 포함하여 사이트에서 액세스할 수 있는 모든 요소에 대한 지적 재산권을 소유하거나 사용권을 보유합니다.",
+      s3_warn: "이대륙의 사전 서면 허가 없이는 사용된 수단이나 프로세스에 관계없이 사이트 요소의 전부 또는 일부를 복제, 표현, 수정, 게시, 개작하는 것을 금지합니다.",
       s4_title: "4. 개인 정보 관리",
       s4_text: "개인 정보는 다양한 국제 프라이버시 법률에 의해 보호됩니다. 이 사이트는 현대적인 보안 표준을 준수합니다.",
       s4_usage: "GeoMaster 사이트를 사용할 때 타사 서버에서 개인 정보를 수집하지 않습니다. 점수와 닉네임은 브라우저의 LocalStorage에만 기록됩니다. 피드백 양식은 공공 중간 저장소 없이 시스템 관리자에게 직접 메시지를 보냅니다.",
       s5_title: "5. 하이퍼링크 및 쿠키",
-      s5_text: "GeoMaster 사이트에는 다른 사이트(REST Countries API, Wikimedia 등)에 대한 하이퍼링크가 포함되어 있습니다. 그러나 c0bb은 방문한 사이트의 내용을 확인할 가능성이 없으므로 이 사실에 대해 어떠한 책임도 지지 않습니다."
+      s5_text: "GeoMaster 사이트에는 다른 사이트(REST Countries API, Wikimedia 등)에 대한 하이퍼링크가 포함되어 있습니다. 그러나 이대륙은 방문한 사이트의 내용을 확인할 가능성이 없으므로 이 사실에 대해 어떠한 책임도 지지 않습니다."
     },
     about: {
       title: "GeoMaster 소개",
