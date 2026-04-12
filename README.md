@@ -1,6 +1,6 @@
 # 🌍 GeoMaster
 
-**GeoMaster** est l'outil ultime pour maîtriser la géographie mondiale de façon ludique et interactive. Conçue par **c0bb237**, cette application transforme l'apprentissage des pays et des capitales en une expérience immersive.
+**GeoMaster** est l'outil ultime pour maîtriser la géographie mondiale de façon ludique et interactive. Conçue par **Daeryuk LEE**, cette application transforme l'apprentissage des pays et des capitales en une expérience immersive.
 
 Que vous soyez un étudiant préparant un examen ou simplement un passionné souhaitant parfaire sa culture générale, GeoMaster vous accompagne dans votre voyage à travers le globe.
 
@@ -49,7 +49,7 @@ Assurez-vous d'avoir [Node.js](https://nodejs.org/) installé sur votre machine.
 
 ## 👤 Auteur
 
-- **c0bb237** - *Créateur et Mainteneur*
+- **Daeryuk LEE** - *Créateur et Mainteneur*
 
 ---
 

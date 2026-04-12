@@ -2,7 +2,7 @@
   "name": "geomaster",
   "version": "0.1.0",
   "private": true,
-  "author": "c0bb237",
+  "author": "Daeryuk LEE",
   "description": "GeoMaster - L'outil ultime pour maîtriser la géographie mondiale.",
   "type": "module",
   "dependencies": {

@@ -53,7 +53,7 @@ export const translations = {
       feedback: "Feedback",
       feedbackPlaceholder: "Une idée ? Un bug ? Écrivez-nous...",
       send: "Envoyer",
-      credits: "© 2026 GeoMaster - Créé par c0bb & Gemini CLI. Tous droits réservés."
+      credits: "© 2026 GeoMaster - Créé par Daeryuk LEE & Gemini CLI. Tous droits réservés."
     },
     legal: {
       s1_title: "1. Édition du site",
@@ -66,13 +66,13 @@ export const translations = {
       s2_text: "Le site est hébergé par les services de GitHub Inc. (GitHub Pages) ou plateforme équivalente de déployement statique.",
       s2_address: "Siège social de l'hébergeur : 88 Colin P Kelly Jr St, San Francisco, CA 94107, États-Unis.",
       s3_title: "3. Propriété intellectuelle et contrefaçons",
-      s3_text: "c0bb est propriétaire des droits de propriété intellectuelle ou détient les droits d’usage sur tous les éléments accessibles sur le site, notamment les textes, images, graphismes, logo, icônes, sons, logiciels.",
-      s3_warn: "Toute reproduction, représentation, modification, publication, adaptation de tout ou partie des éléments du site, quel que soit le moyen ou le procédé utilisé, est interdite, sauf autorisation écrite préalable de : c0bb.",
+      s3_text: "Daeryuk LEE est propriétaire des droits de propriété intellectuelle ou détient les droits d’usage sur tous les éléments accessibles sur le site, notamment les textes, images, graphismes, logo, icônes, sons, logiciels.",
+      s3_warn: "Toute reproduction, représentation, modification, publication, adaptation de tout ou partie des éléments du site, quel que soit le moyen ou le procédé utilisé, est interdite, sauf autorisation écrite préalable de : Daeryuk LEE.",
       s4_title: "4. Gestion des données personnelles",
       s4_text: "En France, les données personnelles sont notamment protégées par la loi n° 78-87 du 6 janvier 1978, la loi n° 2004-801 du 6 août 2004, l'article L. 226-13 du Code pénal et la Directive Européenne du 24 octobre 1995.",
       s4_usage: "À l'occasion de l'utilisation du site GeoMaster, aucune donnée personnelle n'est collectée sur un serveur tiers. Les scores et pseudos sont enregistrés exclusivement dans le LocalStorage de votre navigateur. Le formulaire de feedback envoie messages directement à l'administrateur.",
       s5_title: "5. Liens hypertextes et cookies",
-      s5_text: "Le site GeoMaster contient des liens hypertextes vers d’autres sites. Cependant, c0bb n’a pas la possibilité de vérifier le contenu des sites ainsi visités."
+      s5_text: "Le site GeoMaster contient des liens hypertextes vers d’autres sites. Cependant, Daeryuk LEE n’a pas la possibilité de vérifier le contenu des sites ainsi visités."
     },
     about: {
       title: "À propos de GeoMaster",
@@ -160,7 +160,7 @@ export const translations = {
       feedback: "Feedback",
       feedbackPlaceholder: "An idea? A bug? Write us...",
       send: "Send",
-      credits: "© 2026 GeoMaster - Created by c0bb & Gemini CLI. All rights reserved."
+      credits: "© 2026 GeoMaster - Created by Daeryuk LEE & Gemini CLI. All rights reserved."
     },
     legal: {
       s1_title: "1. Website Edition",
@@ -173,7 +173,7 @@ export const translations = {
       s2_text: "The site is hosted by GitHub Inc. (GitHub Pages) or an equivalent static deployment platform.",
       s2_address: "Hosting headquarters: 88 Colin P Kelly Jr St, San Francisco, CA 94107, USA.",
       s3_title: "3. Intellectual Property and Counterfeiting",
-      s3_text: "c0bb owns the intellectual property rights or holds the usage rights for all elements accessible on the site.",
+      s3_text: "Daeryuk LEE owns the intellectual property rights or holds the usage rights for all elements accessible on the site.",
       s3_warn: "Any reproduction, representation, modification, publication, adaptation of all or part of the site's elements is prohibited without prior written authorization.",
       s4_title: "4. Personal Data Management",
       s4_text: "Personal data is protected by various international privacy laws. This site adheres to modern security standards.",
